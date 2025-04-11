@@ -1,11 +1,10 @@
 import Navbar from "../components/Navbar";
 import { FaChevronLeft, FaChevronRight, FaChevronDown } from "react-icons/fa";
-import { useState, useEffect, useContext, useCallback, useRef } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { useQuestionType } from "../context/QuestionTypeContext";
 import { useHighlightedText } from "../context/HighlightedTextContext";
 import { determineQuestionType } from "../utils/questionTypeUtils";
 import { ThemeContext } from "../context/ThemeContext";
-import { useScore } from "../context/ScoreContext";
 
 interface DivWithDropdownProps {
   textValue: string;
@@ -179,7 +178,6 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
 
 const Questionnaire = () => {
   const { isDarkMode } = useContext(ThemeContext);
-  const { totalScore, updateScore } = useScore();
   const [leftActive, setLeftActive] = useState(true);
   const [rightActive, setRightActive] = useState(false);
   const { highlightedTexts } = useHighlightedText();
@@ -187,10 +185,6 @@ const Questionnaire = () => {
   const [uniqueQuestions, setUniqueQuestions] = useState<string[]>([]);
   const [duplicateDetected] = useState<boolean>(false);
   const [questionTexts, setQuestionTexts] = useState<string[]>([]);
-  const [scoredQuestions, setScoredQuestions] = useState<Record<number, { typeScored: boolean, requiredScored: boolean }>>({});
-  const [bonusAwarded, setBonusAwarded] = useState(false);
-  const [scoreFeedback, setScoreFeedback] = useState<{points: number, id: number} | null>(null);
-  const feedbackId = useRef(0);
 
   const followUpQuestions = [
     "What's the probation period length?",
@@ -198,12 +192,6 @@ const Questionnaire = () => {
     "How many weeks?",
     "Who is the HR/Relevant Contact?",
   ];
-
-  const showFeedback = (points: number) => {
-    feedbackId.current += 1;
-    setScoreFeedback({points, id: feedbackId.current});
-    setTimeout(() => setScoreFeedback(null), 1500);
-  };
 
   const initializeRequiredStatus = (texts: string[]) => {
     return texts.map(() => false);
@@ -216,83 +204,6 @@ const Questionnaire = () => {
       correctType: result.primaryType
     };
   }, []);
-
-  const scoreTypeSelection = useCallback((index: number, selectedType: string) => {
-    if (scoredQuestions[index]?.typeScored) return;
-    
-    const textValue = uniqueQuestions[index];
-    const { correctType } = enhancedDetermineQuestionType(textValue);
-    
-    const isEquivalent = (selectedType === "Text" && correctType === "Paragraph") || 
-                         (selectedType === "Paragraph" && correctType === "Text");
-    
-    const isCorrect = selectedType === correctType || isEquivalent;
-    const points = isCorrect ? 2 : -2;
-    
-    updateScore(points);
-    showFeedback(points);
-    
-    setScoredQuestions(prev => ({
-      ...prev,
-      [index]: { 
-        ...prev[index], 
-        typeScored: true,
-        typeCorrect: isCorrect
-      }
-    }));
-  }, [uniqueQuestions, enhancedDetermineQuestionType, scoredQuestions, updateScore]);
-
-  const scoreRequiredStatus = useCallback((index: number, isRequired: boolean) => {
-    if (isRequired) {
-      if (!scoredQuestions[index]?.requiredScored) {
-        updateScore(2);
-        showFeedback(2);
-        setScoredQuestions(prev => ({
-          ...prev,
-          [index]: { 
-            ...prev[index], 
-            requiredScored: true,
-            requiredCorrect: true
-          }
-        }));
-      }
-    } else {
-      if (scoredQuestions[index]?.requiredScored) {
-        updateScore(-2);
-        showFeedback(-2);
-        setScoredQuestions(prev => ({
-          ...prev,
-          [index]: { 
-            ...prev[index], 
-            requiredScored: false,
-            requiredCorrect: false
-          }
-        }));
-      }
-    }
-  }, [updateScore, scoredQuestions]);
-
-  const checkForBonus = useCallback(() => {
-    if (uniqueQuestions.length === 0 || bonusAwarded) return;
-
-    const allCorrect = uniqueQuestions.every((text, index) => {
-      const { correctType } = enhancedDetermineQuestionType(text);
-      const selectedType = selectedTypes[index];
-      
-      const typeCorrect = selectedType === correctType || 
-                         (selectedType === "Text" && correctType === "Paragraph") || 
-                         (selectedType === "Paragraph" && correctType === "Text");
-      
-      const requiredCorrect = requiredQuestions[index];
-      return typeCorrect && requiredCorrect;
-    });
-
-    if (allCorrect) {
-      updateScore(10);
-      showFeedback(10);
-      setBonusAwarded(true);
-    }
-  }, [uniqueQuestions, selectedTypes, requiredQuestions, enhancedDetermineQuestionType, bonusAwarded, updateScore]);
 
   useEffect(() => {
     const processedTexts: string[] = [];
@@ -337,19 +248,12 @@ const Questionnaire = () => {
     setQuestionTexts(initialTexts);
     setSelectedTypes(initialTypes);
     setEditedQuestions(initialTexts);
-    setScoredQuestions({});
-    setBonusAwarded(false);
   }, [highlightedTexts, setSelectedTypes, setEditedQuestions, setRequiredQuestions, enhancedDetermineQuestionType]);
-
-  useEffect(() => {
-    checkForBonus();
-  }, [selectedTypes, requiredQuestions, checkForBonus]);
 
   const handleTypeChange = (index: number, type: string) => {
     const newTypes = [...selectedTypes];
     newTypes[index] = type;
     setSelectedTypes(newTypes);
-    scoreTypeSelection(index, type);
 
     const textValue = uniqueQuestions[index];
     const { primaryValue } = enhancedDetermineQuestionType(textValue);
@@ -381,7 +285,6 @@ const Questionnaire = () => {
     const newRequired = [...requiredQuestions];
     newRequired[index] = required;
     setRequiredQuestions(newRequired);
-    scoreRequiredStatus(index, required);
   };
 
   const storedLevel = sessionStorage.getItem("level") ?? "none";
@@ -400,29 +303,6 @@ const Questionnaire = () => {
         live_generation="/Live_Generation" 
         {...(storedLevel === "/Level-Three-Quiz" ? { calculations: "/Calculations" } : {})}
       />
-      <div
-        className={`absolute top-16 left-6 w-40 h-12 rounded-xl shadow-lg flex items-center justify-center text-sm font-semibold z-20 ${
-          isDarkMode
-            ? "bg-gradient-to-r from-gray-700 to-gray-800 text-teal-200"
-            : "bg-gradient-to-r from-teal-200 to-cyan-200 text-teal-900"
-        }`}
-      >
-        <div className="relative">
-          Score: {totalScore}
-          {scoreFeedback && (
-            <div 
-              key={scoreFeedback.id}
-              className={`absolute -top-6 right-0 font-bold text-lg ${
-                scoreFeedback.points > 0 
-                  ? "text-emerald-400" 
-                  : "text-rose-500"
-              } animate-[float-up_1.5s_ease-out_forwards]`}
-            >
-              {scoreFeedback.points > 0 ? `+${scoreFeedback.points}` : scoreFeedback.points}
-            </div>
-          )}
-        </div>
-      </div>
       
       <div
         className={`absolute top-16 right-6 w-80 h-12 rounded-xl shadow-lg flex items-center justify-center text-sm font-semibold z-20 ${
