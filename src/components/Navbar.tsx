@@ -41,7 +41,8 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
       Document: level,
       Questionnaire: questionnaire,
       "Live Document Generation": live_generation,
-      "Generated Document": "/Finish"
+      "Generated Document": "/Finish",
+      Calculations: calculations,
     };
 
     const path = routes[label];
