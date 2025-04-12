@@ -287,7 +287,6 @@ const Questionnaire = () => {
     setRequiredQuestions(newRequired);
   };
 
-  const storedLevel = sessionStorage.getItem("level") ?? "none";
   
   return (
     <div
