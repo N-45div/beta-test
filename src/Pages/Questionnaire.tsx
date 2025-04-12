@@ -296,7 +296,7 @@ const Questionnaire = () => {
           : "bg-gradient-to-br from-indigo-50 via-teal-50 to-pink-50"
       }`}
     >
-      <Navbar level={"/Level-Two-Part-Two"} questionnaire={"/Questionnaire"} live_generation={"/Live_Generation"} />
+      <Navbar level={"/Level-Two-Part-Two"} questionnaire={"/Questionnaire"} live_generation={"/Live_Generation_2"} />
       
       <div
         className={`absolute top-16 right-6 w-80 h-12 rounded-xl shadow-lg flex items-center justify-center text-sm font-semibold z-20 ${
