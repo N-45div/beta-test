@@ -178,7 +178,7 @@ const LevelTwoPart_Two = () => {
       },
       useModalOverlay: true,
       confirmCancel: false,
-      tourName: `level-two-part-two-${Date.now()}`, // Unique tour name to prevent persistence
+      tourName: `level-two-part-two-${Date.now()}`,
     });
 
     tour.addStep({
@@ -190,7 +190,7 @@ const LevelTwoPart_Two = () => {
           <p class="mission-text"><strong>Your mission:</strong> Automate an employment agreement using placeholders and conditions. Let's dive in!</p>
         </div>
       `,
-      attachTo: { element: "body", on: "bottom-start" },
+      attachTo: { element: document.body, on: "bottom-start" },
       classes: "shepherd-theme-custom animate__animated animate__fadeIn",
       buttons: [{ text: "Start Learning →", action: tour.next }],
     });
@@ -198,7 +198,7 @@ const LevelTwoPart_Two = () => {
     tour.addStep({
       id: "placeholders",
       text: "Behold your <strong>employment agreement!</strong> Notice those bits wrapped in square brackets, like <strong> [Employer Name] </strong>? Those are placeholders—your secret weapons for automation. Any text inside <strong> [square brackets] </strong> is a placeholder waiting to be customized.<br> Let's start with [Employer Name] by highlighting it and verifying your selection. Then, click on the 'Edit Placeholder' button to automate your placeholder. Hurray! A placeholder has been created for you.",
-      attachTo: { element: "body", on: "bottom-start" },
+      attachTo: { element: document.body, on: "bottom-start" },
       buttons: [{ text: "Next →", action: tour.next }],
     });
 
@@ -206,7 +206,7 @@ const LevelTwoPart_Two = () => {
       id: "select-employer-name",
       text: "Select [Employer Name] in the 'PARTIES' section (under 'Employer:') without spaces before or after the square brackets [].",
       attachTo: {
-        element: document.querySelector("#employer-name-placeholder") || "body", // Fallback to body
+        element: (document.querySelector("#employer-name-placeholder") as HTMLElement | null) || document.body,
         on: "bottom",
       },
       buttons: [
@@ -236,7 +236,7 @@ const LevelTwoPart_Two = () => {
 
     tour.addStep({
       id: "selected-placeholder",
-      text: "Your selected placeholder is now visible here 📌 and ready for editing.", // Fixed spelling
+      text: "Your selected placeholder is now visible here 📌 and ready for editing.",
       attachTo: { element: "#selected-placeholder0", on: "bottom" },
       buttons: [{ text: "Next →", action: tour.next }],
     });
@@ -249,13 +249,12 @@ const LevelTwoPart_Two = () => {
     });
 
     tour.start();
-    // Clear location.state to prevent tour restarts
     window.history.replaceState({}, document.title, location.pathname);
 
     return () => {
       tour.complete();
     };
-  }, []); // Empty dependency array for one-time run
+  }, []);
 
   return (
     <div
