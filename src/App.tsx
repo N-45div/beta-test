@@ -8,6 +8,8 @@ import Questionnaire from "./Pages/Questionnaire";
 import Live_Generation from "./Pages/Live_Generation";
 import Level3_Quiz from "./Pages/Level3Quiz";
 import Questionnaire_Level3 from "./Pages/Questionnaire_Level3";
+//import LevelTwoPart_Two from "./Pages/LevelTwoPart_Two";
+import LevelTwoPart_Two_Demo from "./Pages/LevelTwoPart_Two_Demo";
 // import Live_Generation_2 from "./Pages/Live_Generation_2";
 import Finish from "./Pages/Finish";
 import { HighlightedTextProvider } from "./context/HighlightedTextContext";
@@ -29,6 +31,7 @@ const App = () => {
           <Route path="/Level-Two-Part-One" element={<Level2 />} />
           <Route path="/Matching-Exercise" element={<MatchingExercise data={matchingData} />} />
           <Route path="/Level-Two-Part-Two" element={<LevelTwoPart_Two />} />
+          <Route path="/Level-Two-Part-Two-Demo" element={<LevelTwoPart_Two_Demo />} />
           <Route path="/Questionnaire" element={<Questionnaire />} />
           <Route path="/Live_Generation" element={<Live_Generation />} />
           <Route path="/Level-One-Design" element={<LevelOneDesign />} />
