@@ -8,6 +8,7 @@ import Questionnaire from "./Pages/Questionnaire";
 import Live_Generation from "./Pages/Live_Generation";
 import Level3_Quiz from "./Pages/Level3Quiz";
 import Questionnaire_Level3 from "./Pages/Questionnaire_Level3";
+import Live_Generation_2 from "./Pages/Live_Generation_2";
 //import LevelTwoPart_Two from "./Pages/LevelTwoPart_Two";
 import LevelTwoPart_Two_Demo from "./Pages/LevelTwoPart_Two_Demo";
 // import Live_Generation_2 from "./Pages/Live_Generation_2";
@@ -34,6 +35,7 @@ const App = () => {
           <Route path="/Level-Two-Part-Two-Demo" element={<LevelTwoPart_Two_Demo />} />
           <Route path="/Questionnaire" element={<Questionnaire />} />
           <Route path="/Live_Generation" element={<Live_Generation />} />
+          <Route path="/Live_Generation_2" element={<Live_Generation_2 />} />
           <Route path="/Level-One-Design" element={<LevelOneDesign />} />
           <Route path="/Level-Three-Quiz" element={<Level3_Quiz />} />
           <Route path="/Questionnaire_Level3" element={<Questionnaire_Level3 />} />
