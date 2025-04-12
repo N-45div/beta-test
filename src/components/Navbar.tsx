@@ -18,40 +18,26 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
   const [tooltip, setTooltip] = useState<string | null>(null);
 
   useEffect(() => {
-    const routes: Record<string, string> = {
-      "/Level-Two-Part-Two": "Document",
-      "/Level-Three-Quiz": "Document",
-      "/Questionnaire": "Questionnaire",
-      "/Questionnaire_Level3": "Questionnaire",
-      "/Live_Generation": "Live Document Generation",
-      "/Live_Generation_2": "Live Document Generation",
-      "/Finish": "Generated Document",
-      "/Calculations": "Calculations",
-      "/Calculations_2": "Calculations",
-    };
-
-    const activeLabel = routes[location.pathname] || null;
-    setActiveButton(activeLabel);
-
-    // Update sessionStorage based on current page to ensure consistency
-    if (location.pathname === "/Calculations" || location.pathname === "/Questionnaire_Level3") {
-      sessionStorage.setItem("level", "/Level-Three-Quiz");
-    } else if (location.pathname === "/Level-Two-Part-Two" || location.pathname === "/Live_Generation_2") {
-      sessionStorage.setItem("level", "/Level-Two-Part-Two");
+    // Determine the active button by comparing the current pathname with the props
+    const pathname = location.pathname;
+    if (pathname === level) {
+      setActiveButton("Document");
+    } else if (pathname === questionnaire) {
+      setActiveButton("Questionnaire");
+    } else if (pathname === live_generation) {
+      setActiveButton("Live Document Generation");
+    } else if (pathname === "/Finish") {
+      setActiveButton("Generated Document");
+    } else if (pathname === calculations) {
+      setActiveButton("Calculations");
+    } else {
+      setActiveButton(null);
     }
-  }, [location.pathname]);
+  }, [location.pathname, level, questionnaire, live_generation, calculations]);
 
   const handlePageChange = (label: string) => {
-    // Determine the correct level based on the current page
-    let currentLevel = level;
-    if (location.pathname === "/Calculations" || location.pathname === "/Questionnaire_Level3") {
-      currentLevel = "/Level-Three-Quiz";
-    } else if (location.pathname === "/Live_Generation_2") {
-      currentLevel = "/Level-Two-Part-Two";
-    }
-
     const routes: Record<string, string | null | undefined> = {
-      Document: currentLevel,
+      Document: level,
       Questionnaire: questionnaire,
       "Live Document Generation": live_generation,
       "Generated Document": "/Finish",
