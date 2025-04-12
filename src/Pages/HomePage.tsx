@@ -258,9 +258,9 @@ const LevelCard: React.FC<LevelProps & { isDarkMode: boolean }> = ({
     if (part === "one") {
       navigate("/Level-Two-Part-One");
     } else if (part === "two" && isDemo) {
-      navigate("/Level-Two-Part-Two-Demo"); // Navigate to demo path
+      navigate("/Level-Two-Part-Two-Demo");
     } else {
-      navigate("/Level-Two-Part-Two"); // Navigate to non-demo path
+      navigate("/Level-Two-Part-Two");
     }
   };
 
@@ -376,4 +376,87 @@ const levelsData = [
   {
     title: "CLM Workflows",
     description:
-      "Explore contract lifecycle management
+      "Explore contract lifecycle management by designing and optimizing real-world workflows.",
+    Icon: LuBrain,
+    link: "/Level-Four-Quiz",
+  },
+];
+
+const showNavBar = true;
+
+const HomePage = () => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const levels = useMemo(() => levelsData, []);
+
+  const handleLevelClick = (index: number) => {
+    setActiveIndex(index === activeIndex ? null : index);
+  };
+
+  const toggleDarkMode = () => {
+    setIsDarkMode((prev) => !prev);
+  };
+
+  return (
+    <div
+      className={`min-h-screen px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
+        isDarkMode
+          ? "bg-gradient-to-br from-gray-900 via-blue-900/50 to-slate-800"
+          : "bg-gradient-to-br from-yellow-100 via-blue-100 to-lime-100"
+      }`}
+    >
+      {showNavBar && <Header isDarkMode={isDarkMode} />}
+      <div className="max-w-7xl mx-auto py-36 relative">
+        {/* Dark/Light Mode Toggle Button */}
+        <button
+          onClick={toggleDarkMode}
+          className={`absolute -top-5 -right-20 p-2 rounded-full shadow-md transition-all duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 text-yellow-300 hover:bg-gray-700"
+              : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+          }`}
+        >
+          {isDarkMode ? (
+            <BsSunFill className="text-xl" />
+          ) : (
+            <BsMoonStarsFill className="text-xl" />
+          )}
+        </button>
+
+        <div
+          className={`p-8 rounded-3xl shadow-xl ${
+            isDarkMode ? "bg-gray-800 bg-opacity-90" : "bg-white bg-opacity-90"
+          } backdrop-blur-sm`}
+        >
+          <div className="max-w-3xl mx-auto mb-8 text-center">
+            <h1
+              className={`text-3xl font-bold mb-2 ${
+                isDarkMode ? "text-gray-100" : "text-gray-900"
+              }`}
+            >
+              Welcome to CLM Training
+            </h1>
+            <p
+              className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+            >
+              Select a learning path to begin your contract management journey
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {levels.map((level, index) => (
+              <LevelCard
+                key={index}
+                {...level}
+                active={index === activeIndex}
+                onClick={() => handleLevelClick(index)}
+                isDarkMode={isDarkMode}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default HomePage;
