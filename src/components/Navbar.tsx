@@ -31,14 +31,27 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
     };
 
     const activeLabel = routes[location.pathname] || null;
-    console.log("Current pathname:", location.pathname, "Active label:", activeLabel);
     setActiveButton(activeLabel);
-    console.log("Level:", level);
+
+    // Update sessionStorage based on current page to ensure consistency
+    if (location.pathname === "/Calculations" || location.pathname === "/Questionnaire_Level3") {
+      sessionStorage.setItem("level", "/Level-Three-Quiz");
+    } else if (location.pathname === "/Level-Two-Part-Two" || location.pathname === "/Live_Generation_2") {
+      sessionStorage.setItem("level", "/Level-Two-Part-Two");
+    }
   }, [location.pathname]);
 
   const handlePageChange = (label: string) => {
+    // Determine the correct level based on the current page
+    let currentLevel = level;
+    if (location.pathname === "/Calculations" || location.pathname === "/Questionnaire_Level3") {
+      currentLevel = "/Level-Three-Quiz";
+    } else if (location.pathname === "/Live_Generation_2") {
+      currentLevel = "/Level-Two-Part-Two";
+    }
+
     const routes: Record<string, string | null | undefined> = {
-      Document: level,
+      Document: currentLevel,
       Questionnaire: questionnaire,
       "Live Document Generation": live_generation,
       "Generated Document": "/Finish",
@@ -46,20 +59,16 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
     };
 
     const path = routes[label];
-    console.log("Navigating to:", path);
     if (path) {
       navigation(path);
     }
   };
 
   const pages = ["Document", "Questionnaire"];
-  if (calculations) {
+  if (typeof calculations !== "undefined") {
     pages.push("Calculations");
   }
   pages.push("Live Document Generation");
-
-  console.log("Navbar props:", { level, questionnaire, live_generation, calculations });
-  console.log("pages:", pages);
 
   return (
     <div
@@ -132,7 +141,7 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
               onClick={toggleDarkMode}
               className={`p-2 relative left-[12vw] rounded-full shadow-md transition-all duration-300 transform hover:scale-110 ${
                 isDarkMode
-                  ? "bg-gray-600 text-yellow-400 hover:bg-gray-100"
+                  ? "bg-gray-600 text-yellow-400 hover:bg-gray-100 "
                   : "bg-lime-900 text-white hover:bg-black"
               } flex items-center justify-center text-xl`}
               aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
