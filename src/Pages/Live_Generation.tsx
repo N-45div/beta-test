@@ -628,7 +628,7 @@ const Live_Generation = () => {
     >
       <Navbar 
         level={storedLevel} 
-        questionnaire="/Questionnaire" 
+        questionnaire="/Questionnaire_Level3" 
         live_generation="/Live_Generation" 
         {...(storedLevel === "/Level-Three-Quiz" ? { calculations: "/Calculations" } : {})}
       />
