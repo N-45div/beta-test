@@ -264,7 +264,7 @@ const LevelTwoPart_Two_Demo = () => {
       }`}
     >
       <Navbar
-        level={"/Level-Two-Part-Two-Demo"} // Adjusted for demo route
+        level={"/Level-Two-Part-Two-Demo"}
         questionnaire={"/Questionnaire"}
         live_generation={"/Live_Generation"}
       />
@@ -328,39 +328,6 @@ const LevelTwoPart_Two_Demo = () => {
                   id={`selected-placeholder${index}`}
                   key={`${text}-${index}`}
                   className={`flex items-center justify-between p-4 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-1 ${
-                    isDarkMode
-                      ? "text-teal-200 bg-gray-600/80 hover:bg-gray-500/70"
-                      : "text-teal-800 bg-white/80 hover:bg-teal-100/70"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <span
-                      className={`mr-3 text-lg ${
-                        isDarkMode ? "text-cyan-400" : "text-cyan-500"
-                      }`}
-                    >
-                      ✓
-                    </span>
-                    <span className="text-sm font-medium truncate max-w-xs">
-                      {primaryValue || text}
-                    </span>
-                  </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      isDarkMode
-                        ? "text-gray-300 bg-gray-500/50"
-                        : "text-gray-600 bg-teal-100/50"
-                    }`}
-                  >
-                    Type: {questionType}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <div
-            className={`textbetween p-4 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-1 ${
                     isDarkMode
                       ? "text-teal-200 bg-gray-600/80 hover:bg-gray-500/70"
                       : "text-teal-800 bg-white/80 hover:bg-teal-100/70"
