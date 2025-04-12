@@ -626,7 +626,7 @@ const Live_Generation_2 = () => {
           : "bg-gradient-to-br from-indigo-50 via-teal-50 to-pink-50"
       }`}
     >
-      <Navbar level={"/Level-Two-Part-Two"} questionnaire={"/Questionnaire"} live_generation={"/Live_Generation_2"}/>
+      <Navbar level={storedLevel} questionnaire={"/Questionnaire"} live_generation={"/Live_Generation_2"}/>
       <div className="flex-grow flex items-center justify-center py-12 px-6">
         <div className="flex flex-row w-full max-w-7xl">
           <div
