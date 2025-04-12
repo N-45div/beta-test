@@ -352,7 +352,7 @@ if (newTexts[index] === primaryValue || newTexts[index] === "No text selected") 
     >
       <Navbar 
         level={storedLevel} 
-        questionnaire="/Questionnaire" 
+        questionnaire="/Questionnaire_Level3" 
         live_generation="/Live_Generation" 
         {...(storedLevel === "/Level-Three-Quiz" ? { calculations: "/Calculations" } : {})}
       />
