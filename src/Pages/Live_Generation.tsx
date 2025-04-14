@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import Navbar from "../components/Navbar";
-import { determineQuestionType, findPlaceholderByValue } from "../utils/questionTypeUtils";
+// import { determineQuestionType, findPlaceholderByValue } from "../utils/questionTypeUtils";
 import { documentText } from "../utils/EmploymentAgreement";
 import { useHighlightedText } from "../context/HighlightedTextContext";
 import { useQuestionType } from "../context/QuestionTypeContext";
+import { useQuestionEditContext } from "../context/QuestionEditContext";
 import { ThemeContext } from "../context/ThemeContext";
 
 // const extractClauses = (documentText: string) => {
@@ -63,6 +64,7 @@ const Live_Generation = () => {
   const navigate = useNavigate();
   const { highlightedTexts } = useHighlightedText();
   const { selectedTypes, setSelectedTypes, editedQuestions, setEditedQuestions } = useQuestionType();
+  const { determineQuestionType, findPlaceholderByValue } = useQuestionEditContext();
   // const [questionClauseMap, setQuestionClauseMap] = useState<{ [key: string]: string[] }>({});
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | boolean }>(initializeUserAnswers(highlightedTexts, selectedTypes));
   // const [skippedQuestions, setSkippedQuestions] = useState<string[]>([]);
@@ -211,6 +213,16 @@ const Live_Generation = () => {
         const escapedPlaceholder = placeholder.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&");
         if (typeof answer === "boolean") {
           if (!answer) {
+            // handles probation clause
+            if (question === "Is the clause of probationary period applicable?") {
+              if (answer === false) {
+                updatedText = updatedText.replace(
+                  /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+                  ""
+                );
+              }
+            }
+
             updatedText = updatedText.replace(new RegExp(`.*${escapedPlaceholder}.*`, "gi"), "");
           } else {
             updatedText = updatedText.replace(
@@ -244,12 +256,11 @@ const Live_Generation = () => {
           }
         } else if (question === "Is the clause of probationary period applicable?") {
           if (answer === false) {
-            // Find and remove only the probation clause content while keeping the section
-            const probationSection = updatedText.match(/<h2[^>]*>PROBATIONARY PERIOD<\/h2>\s*<p[^>]*>([\s\S]*?)<\/p>/i);
-            if (probationSection) {
-              const sectionWithoutClause = probationSection[0].replace(/\(The first.*?confirmed in their role\.\)/, '');
-              updatedText = updatedText.replace(probationSection[0], sectionWithoutClause);
-            }
+            // Remove entire PROBATIONARY PERIOD section (h2 + p)
+            updatedText = updatedText.replace(
+              /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+              ""
+            );
           }
         } else if (question === "Is the termination clause applicable?") {
           if (answer === false) {
@@ -632,6 +643,28 @@ const Live_Generation = () => {
         live_generation="/Live_Generation" 
         {...(storedLevel === "/Level-Three-Quiz" ? { calculations: "/Calculations" } : {})}
       />
+      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-4 z-30">
+        <button
+          onClick={() => navigate("/Questionnaire_Level3")}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 text-teal-200 hover:bg-gray-600"
+              : "bg-teal-200 text-teal-900 hover:bg-cyan-200"
+          }`}
+        >
+          ← Back to Questionnaire
+        </button>
+        <button
+          onClick={() => navigate("/")}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 text-teal-200 hover:bg-gray-600"
+              : "bg-teal-200 text-teal-900 hover:bg-cyan-200"
+          }`}
+        >
+          Home
+        </button>
+      </div>
       <div className="flex-grow flex items-center justify-center py-12 px-6">
         <div className="flex flex-row w-full max-w-7xl">
           <div

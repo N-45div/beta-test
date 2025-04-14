@@ -129,7 +129,10 @@ const Level3_Quiz = () => {
       }
       return;
     }
-
+    if (highlightedTexts.includes(textWithoutBrackets)) {
+      alert("This text has already been selected.");
+      return;
+    }
     // Handle highlighting and adding to context
     if (label === "Edit PlaceHolder") {
       if (!hasValidBrackets || selectedText.length >= 40) return;

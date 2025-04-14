@@ -38,6 +38,16 @@ const processAgreement = (html: string, answers: UserAnswers) => {
       const escapedPlaceholder = placeholder.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&");
       if (typeof answer === "boolean") {
         if (!answer) {
+          // handles probation clause
+          if (question === "Is the clause of probationary period applicable?") {
+            if (answer === false) {
+              updatedHtml = updatedHtml.replace(
+                /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+                ""
+              );
+            }
+          }
+
           updatedHtml = updatedHtml.replace(new RegExp(`.*${escapedPlaceholder}.*`, "gi"), "");
         } else {
           updatedHtml = updatedHtml.replace(
