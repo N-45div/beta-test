@@ -15,6 +15,7 @@ import LevelTwoPart_Two_Demo from "./Pages/LevelTwoPart_Two_Demo";
 import Finish from "./Pages/Finish";
 import { HighlightedTextProvider } from "./context/HighlightedTextContext";
 import { QuestionTypeProvider } from "./context/QuestionTypeContext"; // Import the QuestionTypeProvider
+import { QuestionEditProvider } from "./context/QuestionEditContext";
 import MatchingExercise from "./components/MatchingExercise";
 import { matchingData } from "./data/matchingData";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -24,6 +25,7 @@ import Calculations_2 from "./Pages/Calculations_2";
 const App = () => {
   return (
     <HighlightedTextProvider>
+      <QuestionEditProvider>
       <QuestionTypeProvider> {/* Add QuestionTypeProvider to wrap the app */}
       <ThemeProvider>
         <Routes>
@@ -46,6 +48,8 @@ const App = () => {
         </Routes>
         </ThemeProvider>
       </QuestionTypeProvider>
+      </QuestionEditProvider>
+      
     </HighlightedTextProvider>
   );
 };

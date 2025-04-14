@@ -46,7 +46,7 @@ export const dateTypes: { [key: string]: string } = {
 };
 
 export const radioTypes: { [key: string]: string } = {
-  "The first [Probation Period Length]* of employment will be a probationary period. The Company shall assess the Employee’s performance and suitability during this time. Upon successful completion, the Employee will be confirmed in their role.": "Is the clause of probationary period applicable?",
+  "The first [Probation Period Length] of employment will be a probationary period. The Company shall assess the Employee’s performance and suitability during this time. Upon successful completion, the Employee will be confirmed in their role.": "Is the clause of probationary period applicable?",
   "The Employee will be enrolled in the Company’s pension scheme in accordance with auto-enrolment legislation.": "Is the Pension clause applicable?",
   'or, if applicable, "on [Previous Employment Start Date] with previous continuous service taken into account"': "Is the previous service applicable?",
   "The Employee may be required to perform additional duties as reasonably assigned by the Company.":"Is the Employee required to perform additional duties as part of their employment?",
@@ -140,96 +140,34 @@ export const determineQuestionType = (text: string): {
   let alternateType: QuestionType | undefined;
   let alternateValue: string | undefined;
 
-  // const fullProbationClause = "The first [Probation Period Length] of employment will be a probationary period. The Company shall assess the Employee's performance and suitability during this time. The Company may extend the probationary period by up to [Probation Extension Length] if further assessment is required. During the probationary period, either party may terminate the employment by providing [one week's] written notice. Upon successful completion, the Employee will be confirmed in their role.";
-  // const fullTerminationClause = "After the probationary period, either party may terminate the employment by providing [Notice Period] written notice. The Company reserves the right to make a payment in lieu of notice. The Company may summarily dismiss the Employee without notice in cases of gross misconduct.";
-  // const fullSickPayClause = "The Employee may also be entitled to Company sick pay.";
-  // const fullPensionClause = "The Employee will be enrolled in the Company's pension scheme in accordance with auto-enrolment legislation. Further details are available from [HR/Relevant Contact].";
-  const normalizedText = text.trim().replace(/\s+/g, " ").replace(/\n/g, " ");
-  console.log("Input text to determineQuestionType:", text);
-  console.log("Normalized text:", normalizedText);
-  // Define clause contents without headings
-  const probationClauseContent = "The first [Probation Period Length] of employment will be a probationary period. The Company shall assess the Employee's performance and suitability during this time. Upon successful completion, the Employee will be confirmed in their role.";
-  const pensionClauseContent = "The Employee will be enrolled in the Company's pension scheme in accordance with auto-enrolment legislation.";
+  // Radio types (restrict to Radio only, including full clause)
+  const fullProbationClause = "The first [Probation Period Length] of employment will be a probationary period. The Company shall assess the Employee’s performance and suitability during this time. Upon successful completion, the Employee will be confirmed in their role.";
+  const fullTerminationClause = "After the probationary period, either party may terminate the employment by providing [Notice Period] written notice. The Company reserves the right to make a payment in lieu of notice. The Company may summarily dismiss the Employee without notice in cases of gross misconduct.";
+  const fullSickPayClause = "The Employee may also be entitled to Company sick pay of [Details of Company Sick Pay Policy]";
 
-  // Strip heading if present and map to the clause content without heading
-  let clauseContent = normalizedText;
-
-  // Check for headings and strip them
-  if (normalizedText.startsWith("PROBATIONARY PERIOD ")) {
-    clauseContent = normalizedText.replace("PROBATIONARY PERIOD ", "").trim();
-    console.log("Stripped PROBATIONARY PERIOD heading, clauseContent:", clauseContent); // Debug log
-    // Verify that the remaining content matches probationClauseContent
-    if (clauseContent === probationClauseContent.replace(/\s+/g, " ")) {
-      clauseContent = probationClauseContent.replace(/\s+/g, " ");
-    }
-  } else if (normalizedText.startsWith("PROBATIONARY PERIOD")) {
-    // Handle case where there's no space after the heading
-    clauseContent = normalizedText.replace("PROBATIONARY PERIOD", "").trim();
-    console.log("Stripped PROBATIONARY PERIOD (no space) heading, clauseContent:", clauseContent); // Debug log
-    if (clauseContent === probationClauseContent.replace(/\s+/g, " ")) {
-      clauseContent = probationClauseContent.replace(/\s+/g, " ");
-    }
-  } else if (normalizedText.startsWith("PENSION ")) {
-    clauseContent = normalizedText.replace("PENSION ", "").trim();
-    console.log("Stripped PENSION heading, clauseContent:", clauseContent); // Debug log
-    if (clauseContent === pensionClauseContent.replace(/\s+/g, " ")) {
-      clauseContent = pensionClauseContent.replace(/\s+/g, " ");
-    }
-  } else if (normalizedText.startsWith("PENSION")) {
-    clauseContent = normalizedText.replace("PENSION", "").trim();
-    console.log("Stripped PENSION (no space) heading, clauseContent:", clauseContent); // Debug log
-    if (clauseContent === pensionClauseContent.replace(/\s+/g, " ")) {
-      clauseContent = pensionClauseContent.replace(/\s+/g, " ");
-    }
+  if (radioTypes.hasOwnProperty(text) || text === fullProbationClause || text === fullTerminationClause || text === fullSickPayClause) {
+    primaryType = "Radio";
+    primaryValue = radioTypes[text] || radioTypes[fullProbationClause] || radioTypes[fullSickPayClause] || radioTypes[fullTerminationClause];
+    validTypes.push("Radio");
   }
 
-  console.log("Final clauseContent after processing:", clauseContent); // Debug log
-
-  // Check radioTypes using the stripped clause content
-  const radioKeys = Object.keys(radioTypes);
-  const matchingRadioKey = radioKeys.find(key => {
-    const normalizedKey = key.trim().replace(/\s+/g, " ");
-    return clauseContent === normalizedKey;
-  });
-
-  if (matchingRadioKey) {
-    primaryType = "Radio";
-    primaryValue = radioTypes[matchingRadioKey];
-    validTypes.push("Radio");
-    console.log("Matched Radio type:", primaryValue); // Debug log
-  } else if (clauseContent === probationClauseContent) {
-    primaryType = "Radio";
-    primaryValue = radioTypes[probationClauseContent];
-    validTypes.push("Radio");
-    console.log("Matched Radio type (direct probationClauseContent):", primaryValue); // Debug log
-  } else if (clauseContent === pensionClauseContent) {
-    primaryType = "Radio";
-    primaryValue = radioTypes[pensionClauseContent];
-    validTypes.push("Radio");
-    console.log("Matched Radio type (direct pensionClauseContent):", primaryValue); // Debug log
-  }
-
-  // Existing checks for text, number, and date types
+  // Text types (restrict to Text only)
   if (textTypes.hasOwnProperty(text)) {
     primaryType = "Text";
     primaryValue = textTypes[text];
     validTypes = ["Text"];
-    console.log("Matched Text type:", primaryValue); // Debug log
   }
 
+  // Number types (restrict to Number only)
   if (numberTypes.hasOwnProperty(text)) {
     if (primaryType === "Unknown") {
       primaryType = "Number";
       primaryValue = numberTypes[text];
-      if (text === "Notice Period") {
-        console.log("Notice Period mapped to Number type with question:", primaryValue);
-      }
     } else {
       alternateType = "Number";
       alternateValue = numberTypes[text];
     }
     validTypes.push("Number");
-    console.log("Matched Number type:", primaryValue);
   }
 
   if (dateTypes.hasOwnProperty(text)) {
@@ -241,14 +179,13 @@ export const determineQuestionType = (text: string): {
       alternateValue = dateTypes[text];
     }
     validTypes.push("Date");
-    console.log("Matched Date type:", primaryValue); // Debug log
   }
 
+  
+
   if (validTypes.length === 0) {
-    console.log("No match found, returning Unknown type"); // Debug log
     return { primaryType: "Unknown", primaryValue: "", validTypes: ["Text", "Paragraph", "Email", "Number", "Date", "Radio"] };
   }
 
-  console.log("Returning from determineQuestionType:", { primaryType, primaryValue, validTypes, alternateType, alternateValue });
   return { primaryType, primaryValue, validTypes, alternateType, alternateValue };
 };

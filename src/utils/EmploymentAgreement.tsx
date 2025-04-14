@@ -26,10 +26,7 @@ export const documentText = `
               </p>
           </div>
           <div>
-              <h2 className="text-2xl font-bold mt-6">(PROBATIONARY PERIOD</h2>
-              <p>
-                  The first <span className="placeholder-probation-period-length">[Probation Period Length]</span> months of employment will be a probationary period. The Company shall assess the Employee’s performance and suitability during this time. Upon successful completion, the Employee will be confirmed in their role. ) <span className="text-black font-bold">(Optional Clause)</span>
-              </p>
+              <h2 className="text-2xl font-bold mt-6">(PROBATIONARY PERIOD</h2><p>The first <span className="placeholder-probation-period-length">[Probation Period Length]</span> months of employment will be a probationary period. The Company shall assess the Employee’s performance and suitability during this time. Upon successful completion, the Employee will be confirmed in their role.) <span className="text-black font-bold">(Optional Clause)</span></p>
           </div>
           <div>
               <h2 className="text-2xl font-bold mt-6">JOB TITLE AND DUTIES</h2>
@@ -76,10 +73,7 @@ export const documentText = `
               </p>
           </div>
           <div>
-              <h2 className="text-2xl font-bold mt-6">(PENSION</h2>
-              <p>
-                  The Employee will be enrolled in the Company’s pension scheme in accordance with auto-enrolment legislation.)
-              </p>
+              <h2 className="text-2xl font-bold mt-6">(PENSION</h2><p>The Employee will be enrolled in the Company’s pension scheme in accordance with auto-enrolment legislation.)</p>
           </div>
           <div>
               <h2 className="text-2xl font-bold mt-6">TERMINATION CLAUSE</h2>

@@ -87,7 +87,28 @@ const Calculations = () => {
       }`}
     >
       <Navbar level={"/Level-Three-Quiz"} questionnaire={"/Questionnaire_Level3"} live_generation={"/Live_Generation"} calculations={"/Calculations"}/>
-      
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4 z-30">
+        <button
+          onClick={() => navigate("/Questionnaire_Level3")}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 text-teal-200 hover:bg-gray-600"
+              : "bg-teal-200 text-teal-900 hover:bg-cyan-200"
+          }`}
+        >
+          ← Back to Questionaire
+        </button>
+        <button
+          onClick={() => navigate("/")}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 text-teal-200 hover:bg-gray-600"
+              : "bg-teal-200 text-teal-900 hover:bg-cyan-200"
+          }`}
+        >
+          Home
+        </button>
+      </div>
       {/* Score Display - Only animation kept */}
       <div className="fixed top-16 left-0 z-50 px-6 py-3">
         <div className="relative">

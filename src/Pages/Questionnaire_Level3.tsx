@@ -3,9 +3,12 @@ import { FaChevronLeft, FaChevronRight, FaChevronDown } from "react-icons/fa";
 import { useState, useEffect, useContext, useCallback, useRef } from "react";
 import { useQuestionType } from "../context/QuestionTypeContext";
 import { useHighlightedText } from "../context/HighlightedTextContext";
-import { determineQuestionType } from "../utils/questionTypeUtils";
+// import { determineQuestionType } from "../utils/questionTypeUtils";
+import { useQuestionEditContext, QuestionMaps } from "../context/QuestionEditContext.tsx";
 import { ThemeContext } from "../context/ThemeContext";
 import { useScore } from "../context/ScoreContext";
+import { useNavigate } from "react-router-dom";
+
 
 interface DivWithDropdownProps {
   textValue: string;
@@ -36,6 +39,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isRequired, setIsRequired] = useState(initialRequired);
   const [typeChanged, setTypeChanged] = useState(false);
+  const { findPlaceholderByValue, updateQuestion, determineQuestionType, questionMaps } = useQuestionEditContext();
   const { primaryValue } = determineQuestionType(textValue);
 
   const handleTypeSelect = (type: string) => {
@@ -63,9 +67,26 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
   };
 
   const handleQuestionTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const oldText = textValue;
     const newText = e.target.value;
     setQuestionText(newText);
     onQuestionTextChange(index, newText);
+    const { primaryType } = determineQuestionType(oldText);
+    const placeholder = findPlaceholderByValue(oldText);
+
+    if (placeholder && primaryType !== "Unknown") {
+      const typeKey = (primaryType.toLowerCase() + "Types") as string;
+
+      if (
+        typeKey === "textTypes" ||
+        typeKey === "numberTypes" ||
+        typeKey === "dateTypes" ||
+        typeKey === "radioTypes"
+      ) {
+        updateQuestion(typeKey as keyof QuestionMaps, placeholder, newText);
+      }
+      console.log("question map: ", questionMaps);
+    }
   };
 
   const handleRequiredToggle = () => {
@@ -191,6 +212,8 @@ const Questionnaire_Level3 = () => {
   const [bonusAwarded, setBonusAwarded] = useState(false);
   const [scoreFeedback, setScoreFeedback] = useState<{points: number, id: number} | null>(null);
   const feedbackId = useRef(0);
+  const { questionMaps, updateQuestion, determineQuestionType, findPlaceholderByValue } = useQuestionEditContext();
+  const navigate = useNavigate();
 
   const followUpQuestions = [
     "What's the probation period length?",
@@ -328,10 +351,12 @@ const Questionnaire_Level3 = () => {
     setUniqueQuestions(processedTexts);
     const initialRequired = initializeRequiredStatus(processedTexts);
     setRequiredQuestions(initialRequired);
-
+    console.log("processed texts: ", processedTexts);
     const initialTexts = processedTexts.map(
-      (text) => enhancedDetermineQuestionType(text).primaryValue || "No text selected"
+      (text) => determineQuestionType(text).primaryValue || "No text selected"
     );
+    console.log("initialtexts: ", initialTexts);
+    
     const initialTypes = processedTexts.map(() => "Text");
 
     setQuestionTexts(initialTexts);
@@ -371,10 +396,35 @@ const Questionnaire_Level3 = () => {
   };
 
   const handleQuestionTextChange = (index: number, newText: string) => {
+    const oldText = questionTexts[index];
     const newTexts = [...questionTexts];
     newTexts[index] = newText;
     setQuestionTexts(newTexts);
     setEditedQuestions(newTexts);
+    console.log("old text: ", oldText);
+    const placeholder = findPlaceholderByValue(oldText) || "undefined";
+    const { primaryType } = determineQuestionType(placeholder);
+    console.log("primary Type: ", primaryType);
+      
+    console.log("old placeholder: ", placeholder);
+
+    if (placeholder) {
+      const typeKey = (primaryType.toLowerCase() + "Types") as string;
+      console.log("newtext: ", newText);
+      console.log("type key: ", typeKey);
+
+      if (
+        typeKey === "textTypes" ||
+        typeKey === "numberTypes" ||
+        typeKey === "dateTypes" ||
+        typeKey === "radioTypes"
+      ) {
+        updateQuestion(typeKey as keyof QuestionMaps, placeholder, newText);
+      }
+      
+      
+      console.log("question map: ", questionMaps);
+    }
   };
 
   const handleRequiredChange = (index: number, required: boolean) => {
@@ -400,6 +450,29 @@ const Questionnaire_Level3 = () => {
         live_generation="/Live_Generation" 
         {...(storedLevel === "/Level-Three-Quiz" ? { calculations: "/Calculations" } : {})}
       />
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4 z-30">
+        <button
+          onClick={() => navigate("/Level-Three-Quiz")}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 text-teal-200 hover:bg-gray-600"
+              : "bg-teal-200 text-teal-900 hover:bg-cyan-200"
+          }`}
+        >
+          ← Back to Quiz
+        </button>
+        <button
+          onClick={() => navigate("/")}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 text-teal-200 hover:bg-gray-600"
+              : "bg-teal-200 text-teal-900 hover:bg-cyan-200"
+          }`}
+        >
+          Home
+        </button>
+      </div>
+
       <div
         className={`absolute top-16 left-6 w-40 h-12 rounded-xl shadow-lg flex items-center justify-center text-sm font-semibold z-20 ${
           isDarkMode
