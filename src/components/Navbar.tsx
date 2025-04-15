@@ -18,7 +18,11 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
   const [tooltip, setTooltip] = useState<string | null>(null);
 
   useEffect(() => {
-    // Determine the active button by comparing the current pathname with the props
+    // Debug: Log current pathname and props
+    console.log("Navbar - Current pathname:", location.pathname);
+    console.log("Navbar - Props:", { level, questionnaire, live_generation, calculations });
+
+    // Set active button based on current pathname
     const pathname = location.pathname;
     if (pathname === level) {
       setActiveButton("Document");
@@ -36,6 +40,14 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
   }, [location.pathname, level, questionnaire, live_generation, calculations]);
 
   const handlePageChange = (label: string) => {
+    // Debug: Log navigation attempt
+    console.log(`Navbar - Navigating to ${label} with route:`, {
+      Document: level,
+      Questionnaire: questionnaire,
+      "Live Document Generation": live_generation,
+      Calculations: calculations,
+    }[label]);
+
     const routes: Record<string, string | null | undefined> = {
       Document: level,
       Questionnaire: questionnaire,
@@ -47,6 +59,8 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
     const path = routes[label];
     if (path) {
       navigation(path);
+    } else {
+      console.warn(`No route found for label: ${label}`);
     }
   };
 
@@ -127,7 +141,7 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
               onClick={toggleDarkMode}
               className={`p-2 relative left-[12vw] rounded-full shadow-md transition-all duration-300 transform hover:scale-110 ${
                 isDarkMode
-                  ? "bg-gray-600 text-yellow-400 hover:bg-gray-100 "
+                  ? "bg-gray-600 text-yellow-400 hover:bg-gray-100"
                   : "bg-lime-900 text-white hover:bg-black"
               } flex items-center justify-center text-xl`}
               aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
