@@ -24,9 +24,17 @@ const LevelTwoPart_Two_Demo = () => {
   const location = useLocation();
   const { isDarkMode } = useContext(ThemeContext);
   const [tooltip, setTooltip] = useState<string | null>(null);
-  const { highlightedTexts, addHighlightedText } = useHighlightedText();
+  const { highlightedTexts, addHighlightedText, clearHighlightedTexts } = useHighlightedText();
   const { selectedTypes } = useQuestionType();
   const documentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    console.log("LevelTwoPart_Two_Demo - Rendering at:", location.pathname);
+    sessionStorage.removeItem("level");
+    sessionStorage.setItem("level", location.pathname);
+    // Optional: Clear highlighted texts to avoid Level 3 data
+    clearHighlightedTexts();
+  }, [location.pathname, clearHighlightedTexts]);
 
   const getDocumentText = () => {
     return documentRef.current?.textContent || "";
@@ -389,7 +397,6 @@ const LevelTwoPart_Two_Demo = () => {
           </div>
         )}
       </div>
-
       <div className="max-w-5xl mx-auto mt-10 px-8 pb-20" ref={documentRef}>
         <div
           className={`p-6 rounded-3xl shadow-xl border ${
@@ -400,11 +407,7 @@ const LevelTwoPart_Two_Demo = () => {
         >
           <EmploymentAgreement />
         </div>
-        <AIAnalysisPanel
-          documentText={getDocumentText()}
-          highlightedTexts={highlightedTexts}
-          isDarkMode={isDarkMode}
-        />
+        <AIAnalysisPanel/>
       </div>
     </div>
   );
