@@ -1,7 +1,7 @@
 import { FaPenToSquare } from "react-icons/fa6";
 import { TbSettingsMinus, TbSettingsPlus } from "react-icons/tb";
 import { ImLoop2 } from "react-icons/im";
-import { useState, useContext, useRef } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { useHighlightedText } from "../context/HighlightedTextContext";
 import { useQuestionType } from "../context/QuestionTypeContext";
@@ -9,6 +9,7 @@ import EmploymentAgreement from "../utils/EmploymentAgreement";
 import { determineQuestionType } from "../utils/questionTypeUtils";
 import { ThemeContext } from "../context/ThemeContext";
 import AIAnalysisPanel from "../components/AIAnalysisPanel";
+import { useLocation } from "react-router";
 
 const icons = [
   { icon: <FaPenToSquare />, label: "Edit PlaceHolder" },
@@ -19,10 +20,17 @@ const icons = [
 
 const LevelTwoPart_Two = () => {
   const { isDarkMode } = useContext(ThemeContext);
+  const location = useLocation();
   const [tooltip, setTooltip] = useState<string | null>(null);
   const { highlightedTexts, addHighlightedText } = useHighlightedText();
   const { selectedTypes } = useQuestionType();
   const documentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    console.log("LevelTwoPart_Two - Rendering at:", location.pathname);
+    sessionStorage.removeItem("level");
+    sessionStorage.setItem("level", location.pathname);
+  }, [location.pathname]);
 
   const getDocumentText = () => {
     return documentRef.current?.textContent || "";
@@ -298,7 +306,6 @@ const LevelTwoPart_Two = () => {
           </div>
         )}
       </div>
-
       <div className="max-w-5xl mx-auto mt-10 px-8 pb-20" ref={documentRef}>
         <div
           className={`p-6 rounded-3xl shadow-xl border ${
