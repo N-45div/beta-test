@@ -18,11 +18,10 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
   const [tooltip, setTooltip] = useState<string | null>(null);
 
   useEffect(() => {
-    // Debug: Log current pathname and props
     console.log("Navbar - Current pathname:", location.pathname);
     console.log("Navbar - Props:", { level, questionnaire, live_generation, calculations });
+    console.log("Navbar - sessionStorage level:", sessionStorage.getItem("level"));
 
-    // Set active button based on current pathname
     const pathname = location.pathname;
     if (pathname === level) {
       setActiveButton("Document");
@@ -40,14 +39,6 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
   }, [location.pathname, level, questionnaire, live_generation, calculations]);
 
   const handlePageChange = (label: string) => {
-    // Debug: Log navigation attempt
-    console.log(`Navbar - Navigating to ${label} with route:`, {
-      Document: level,
-      Questionnaire: questionnaire,
-      "Live Document Generation": live_generation,
-      Calculations: calculations,
-    }[label]);
-
     const routes: Record<string, string | null | undefined> = {
       Document: level,
       Questionnaire: questionnaire,
@@ -57,10 +48,14 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
     };
 
     const path = routes[label];
-    if (path) {
+    console.log(`Navbar - Navigating to ${label}:`, path, "Current pathname:", location.pathname);
+
+    if (path && path !== location.pathname) {
       navigation(path);
+    } else if (path === location.pathname) {
+      console.log(`Navbar - Already on ${path}, skipping navigation`);
     } else {
-      console.warn(`No route found for label: ${label}`);
+      console.warn(`Navbar - No valid route for ${label}`);
     }
   };
 
