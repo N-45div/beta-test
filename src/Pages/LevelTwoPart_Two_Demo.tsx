@@ -24,7 +24,7 @@ const LevelTwoPart_Two_Demo = () => {
   const location = useLocation();
   const { isDarkMode } = useContext(ThemeContext);
   const [tooltip, setTooltip] = useState<string | null>(null);
-  const { highlightedTexts, addHighlightedText, clearHighlightedTexts } = useHighlightedText();
+  const { highlightedTexts, addHighlightedText } = useHighlightedText();
   const { selectedTypes } = useQuestionType();
   const documentRef = useRef<HTMLDivElement>(null);
 
@@ -32,9 +32,7 @@ const LevelTwoPart_Two_Demo = () => {
     console.log("LevelTwoPart_Two_Demo - Rendering at:", location.pathname);
     sessionStorage.removeItem("level");
     sessionStorage.setItem("level", location.pathname);
-    // Optional: Clear highlighted texts to avoid Level 3 data
-    clearHighlightedTexts();
-  }, [location.pathname, clearHighlightedTexts]);
+  }, [location.pathname]);
 
   const getDocumentText = () => {
     return documentRef.current?.textContent || "";
