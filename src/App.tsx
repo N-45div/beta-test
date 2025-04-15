@@ -1,4 +1,4 @@
-import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
 import LevelOneQuizPage from "./Pages/LevelOneQuizPage";
 import Level2 from "./Pages/LevelTwo";
@@ -22,7 +22,6 @@ import Calculations_2 from "./Pages/Calculations_2";
 
 const App = () => {
   return (
-    <BrowserRouter>
       <HighlightedTextProvider>
         <QuestionEditProvider>
           <QuestionTypeProvider>
@@ -49,7 +48,6 @@ const App = () => {
           </QuestionTypeProvider>
         </QuestionEditProvider>
       </HighlightedTextProvider>
-    </BrowserRouter>
   );
 };
 
