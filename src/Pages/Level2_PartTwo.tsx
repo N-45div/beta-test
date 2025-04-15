@@ -316,7 +316,11 @@ const LevelTwoPart_Two = () => {
         >
           <EmploymentAgreement />
         </div>
-        <AIAnalysisPanel/>
+        <AIAnalysisPanel
+          documentText={getDocumentText()}
+          highlightedTexts={highlightedTexts}
+          isDarkMode={isDarkMode}
+        />
       </div>
     </div>
   );
