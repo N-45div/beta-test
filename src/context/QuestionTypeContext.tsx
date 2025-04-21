@@ -16,6 +16,8 @@ interface QuestionTypeContextProps {
   setRequiredQuestions: (required: boolean[]) => void;
   followUpQuestions: FollowUpQuestion[];
   setFollowUpQuestions: (followUps: FollowUpQuestion[]) => void;
+  questionOrder: number[];
+  setQuestionOrder: (order: number[]) => void;
 }
 
 interface QuestionTypeProviderProps {
@@ -29,6 +31,7 @@ export const QuestionTypeProvider: React.FC<QuestionTypeProviderProps> = ({ chil
   const [editedQuestions, setEditedQuestions] = useState<string[]>([]);
   const [requiredQuestions, setRequiredQuestions] = useState<boolean[]>([]);
   const [followUpQuestions, setFollowUpQuestions] = useState<FollowUpQuestion[]>([]);
+  const [questionOrder, setQuestionOrder] = useState<number[]>([]);
 
   return (
     <QuestionTypeContext.Provider
@@ -41,6 +44,8 @@ export const QuestionTypeProvider: React.FC<QuestionTypeProviderProps> = ({ chil
         setRequiredQuestions,
         followUpQuestions,
         setFollowUpQuestions,
+        questionOrder,
+        setQuestionOrder,
       }}
     >
       {children}

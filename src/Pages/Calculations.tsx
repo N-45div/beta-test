@@ -86,7 +86,7 @@ const Calculations = () => {
           : "bg-gradient-to-br from-indigo-50 via-teal-50 to-pink-50"
       }`}
     >
-      <Navbar level={"/Level-Three-Quiz"} questionnaire={"/Questionnaire_Level3"} live_generation={"/Live_Generation"} calculations={"/Calculations"}/>
+      <Navbar level={"/Level-Three-Quiz"} questionnaire={"/Questionnaire_Level3"} live_generation={"/Live_Generation_2"} calculations={"/Calculations"}/>
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4 z-30">
         <button
           onClick={() => navigate("/Questionnaire_Level3")}
@@ -235,7 +235,7 @@ const Calculations = () => {
         <div className="flex justify-center mt-10">
             <button 
             className="mt-55 px-6 py-3 bg-purple-500 text-white text-lg font-semibold rounded-lg hover:bg-purple-600"
-            onClick={() => navigate("/Live_Generation")}>
+            onClick={() => navigate("/Live_Generation_2")}>
                 Continue
             </button>
         </div>
