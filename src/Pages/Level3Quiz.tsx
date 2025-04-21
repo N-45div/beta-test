@@ -247,7 +247,7 @@ const Level3_Quiz = () => {
         : "bg-gradient-to-br from-indigo-50 via-teal-50 to-pink-50"
         }`}
     >
-      <Navbar level={"/Level-Three-Quiz"} questionnaire={"/Questionnaire_Level3"} live_generation={"/Live_Generation"} calculations={"/Calculations"} />
+      <Navbar level={"/Level-Three-Quiz"} questionnaire={"/Questionnaire_Level3"} live_generation={"/Live_Generation_2"} calculations={"/Calculations"} />
 
       {/* Score Display */}
       <div className="fixed top-16 left-0 z-50 px-6 py-3">

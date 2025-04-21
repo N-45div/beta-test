@@ -1,77 +1,34 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import Navbar from "../components/Navbar";
-import { determineQuestionType, findPlaceholderByValue } from "../utils/questionTypeUtils";
+// import { determineQuestionType, findPlaceholderByValue } from "../utils/questionTypeUtils";
 import { documentText } from "../utils/EmploymentAgreement";
 import { useHighlightedText } from "../context/HighlightedTextContext";
 import { useQuestionType } from "../context/QuestionTypeContext";
+import { useQuestionEditContext } from "../context/QuestionEditContext";
 import { ThemeContext } from "../context/ThemeContext";
+import parse, { DOMNode, Element } from "html-react-parser";
 
-// const extractClauses = (documentText: string) => {
-//   const sections = documentText.split("<h2");
-//   const clauses: string[] = [];
-//   sections.forEach((section) => {
-//     if (section.includes("[")) {
-//       clauses.push(`<h2${section}`);
-//     }
-//   });
-//   return clauses;
-// };
-
-// const mapQuestionsToClauses = (
-//   clauses: string[],
-//   textTypes: { [key: string]: string },
-//   numberTypes: { [key: string]: string },
-//   dateTypes: { [key: string]: string },
-//   radioTypes: { [key: string]: string }
-// ) => {
-//   const questionClauseMap: { [key: string]: string[] } = {};
-//   clauses.forEach((clause) => {
-//     Object.keys(textTypes).forEach((key) => {
-//       const placeholder = `[${key}]`;
-//       if (clause.includes(placeholder)) {
-//         if (!questionClauseMap[textTypes[key]]) questionClauseMap[textTypes[key]] = [];
-//         questionClauseMap[textTypes[key]].push(clause);
-//       }
-//     });
-//     Object.keys(numberTypes).forEach((key) => {
-//       const placeholder = `[${key}]`;
-//       if (clause.includes(placeholder)) {
-//         if (!questionClauseMap[numberTypes[key]]) questionClauseMap[numberTypes[key]] = [];
-//         questionClauseMap[numberTypes[key]].push(clause);
-//       }
-//     });
-//     Object.keys(dateTypes).forEach((key) => {
-//       const placeholder = `[${key}]`;
-//       if (clause.includes(placeholder)) {
-//         if (!questionClauseMap[dateTypes[key]]) questionClauseMap[dateTypes[key]] = [];
-//         questionClauseMap[dateTypes[key]].push(clause);
-//       }
-//     });
-//     Object.keys(radioTypes).forEach((key) => {
-//       if (clause.includes(key)) {
-//         if (!questionClauseMap[radioTypes[key]]) questionClauseMap[radioTypes[key]] = [];
-//         questionClauseMap[radioTypes[key]].push(clause);
-//       }
-//     });
-//   });
-//   return questionClauseMap;
-// };
 
 const Live_Generation_2 = () => {
   const { isDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   const { highlightedTexts } = useHighlightedText();
   const { selectedTypes, setSelectedTypes, editedQuestions, setEditedQuestions } = useQuestionType();
+  const { determineQuestionType, findPlaceholderByValue } = useQuestionEditContext();
   // const [questionClauseMap, setQuestionClauseMap] = useState<{ [key: string]: string[] }>({});
-  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | boolean }>(initializeUserAnswers(highlightedTexts, selectedTypes));
   // const [skippedQuestions, setSkippedQuestions] = useState<string[]>([]);
   const [agreement, setAgreement] = useState<string>(documentText);
   const [inputErrors, setInputErrors] = useState<{ [key: string]: string }>({});
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [additionalLocations, setAdditionalLocations] = useState<string[]>([]);
   const [locations] = useState<string[]>([]);
-  
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | boolean }>({});
+
+  useEffect(() => {
+    const initial = initializeUserAnswers(highlightedTexts, selectedTypes);
+    setUserAnswers(initial);
+  }, [highlightedTexts, selectedTypes]);
 
   useEffect(() => {
     const processedTexts: string[] = [];
@@ -104,63 +61,30 @@ const Live_Generation_2 = () => {
   }, [editedQuestions, selectedTypes]);
 
 
-
+  useEffect(() => {
+    // This code runs only once when the component mounts
+    console.log("user answers: ", userAnswers);
+  
+    // You can also call initialization logic here
+  }, [userAnswers]);
 
   function initializeUserAnswers(highlightedTexts: string[], selectedTypes: (string | null)[]): { [key: string]: string | boolean } {
     const initialAnswers: { [key: string]: string | boolean } = {};
     highlightedTexts.forEach((text, index) => {
       const { primaryValue } = determineQuestionType(text);
+      console.log("initial primary value: ", primaryValue)
       const type = selectedTypes[index] || "Text";
+      console.log("initial type: ", type)
       if (primaryValue) {
         initialAnswers[primaryValue] = type === "Radio" ? false : "";
+        console.log("initial answers: ", initialAnswers)
       }
     });
     return initialAnswers;
   }
 
-  // useEffect(() => {
-  //   const clauses = extractClauses(documentText);
-  //   const map = mapQuestionsToClauses(clauses, textTypes, numberTypes, dateTypes, radioTypes);
-  //   setQuestionClauseMap(map);
-  // }, []);
 
-  // useEffect(() => {
-  //   const probationQuestion = "Is the clause of probationary period applicable?";
-  //   const followUpQuestions = ["What's the probation period length?", "What's the probation extension length?", "How many weeks?"];
-  //   const isProbationApplicable = userAnswers[probationQuestion] as boolean || false;
 
-  //   const terminationQuestion = "Is the termination clause applicable?";
-  //   const followUpTermination = ["What's the notice period?"];
-  //   const isTerminationApplicable = userAnswers[terminationQuestion] as boolean || false;
-
-  //   const sickPayQuestion = "Is the sick pay policy applicable?";
-  //   const followUpSickPay = ["What's the sick pay policy?"];
-  //   const isSickPayApplicable = userAnswers[sickPayQuestion] as boolean || false;
-
-  //   const prevEmploymentQuestion = "Is the previous service applicable?";
-  //   const followUpPrev = ["What's the previous employment start date?"];
-  //   const isPrevApplicable = userAnswers[prevEmploymentQuestion] as boolean || false;
-
-  //   const overtimeQuestion = "Does the employee receive overtime payment?";
-  //   const followUpOvertime = ["What's the overtime pay rate?"];
-  //   const isOvertimeApplicable = userAnswers[overtimeQuestion] as boolean || false;
-
-  //   const skipped = [
-  //     ...(isProbationApplicable ? [] : followUpQuestions),
-  //     ...(isTerminationApplicable ? [] : followUpTermination),
-  //     ...(isSickPayApplicable ? [] : followUpSickPay),
-  //     ...(isPrevApplicable ? [] : followUpPrev),
-  //     ...(isOvertimeApplicable ? [] : followUpOvertime),
-  //   ].filter((q) => q !== "What's the sick pay policy?");
-
-  //   setSkippedQuestions(skipped);
-  // }, [
-  //   userAnswers["Is the clause of probationary period applicable?"],
-  //   userAnswers["Is the termination clause applicable?"],
-  //   userAnswers["Is the sick pay policy applicable?"],
-  //   userAnswers["Is the previous service applicable?"],
-  //   userAnswers["Does the employee receive overtime payment?"],
-  // ]);
 
   useEffect(() => {
     let updatedText = documentText;
@@ -211,6 +135,16 @@ const Live_Generation_2 = () => {
         const escapedPlaceholder = placeholder.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&");
         if (typeof answer === "boolean") {
           if (!answer) {
+            // handles probation clause
+            if (question === "Is the clause of probationary period applicable?") {
+              if (answer === false) {
+                updatedText = updatedText.replace(
+                  /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+                  ""
+                );
+              }
+            }
+
             updatedText = updatedText.replace(new RegExp(`.*${escapedPlaceholder}.*`, "gi"), "");
           } else {
             updatedText = updatedText.replace(
@@ -244,12 +178,11 @@ const Live_Generation_2 = () => {
           }
         } else if (question === "Is the clause of probationary period applicable?") {
           if (answer === false) {
-            // Find and remove only the probation clause content while keeping the section
-            const probationSection = updatedText.match(/<h2[^>]*>PROBATIONARY PERIOD<\/h2>\s*<p[^>]*>([\s\S]*?)<\/p>/i);
-            if (probationSection) {
-              const sectionWithoutClause = probationSection[0].replace(/\(The first.*?confirmed in their role\.\)/, '');
-              updatedText = updatedText.replace(probationSection[0], sectionWithoutClause);
-            }
+            // Remove entire PROBATIONARY PERIOD section (h2 + p)
+            updatedText = updatedText.replace(
+              /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+              ""
+            );
           }
         } else if (question === "Is the termination clause applicable?") {
           if (answer === false) {
@@ -626,7 +559,12 @@ const Live_Generation_2 = () => {
           : "bg-gradient-to-br from-indigo-50 via-teal-50 to-pink-50"
       }`}
     >
-      <Navbar level={storedLevel} questionnaire={"/Questionnaire"} live_generation={"/Live_Generation_2"}/>
+      <Navbar 
+        level={storedLevel} 
+        questionnaire="/Questionnaire_Level3" 
+        live_generation="/Live_Generation_2" 
+        {...(storedLevel === "/Level-Three-Quiz" ? { calculations: "/Calculations" } : {})}
+      />
       <div className="flex-grow flex items-center justify-center py-12 px-6">
         <div className="flex flex-row w-full max-w-7xl">
           <div
@@ -687,10 +625,24 @@ const Live_Generation_2 = () => {
                 : "bg-white/90 backdrop-blur-sm border-teal-100/20"
             }`}
           >
-            <div className={`mt-6 p-6 ${isDarkMode ? "text-teal-200" : "text-teal-900"}`}>
-              <div dangerouslySetInnerHTML={{ __html: agreement }} />
+            <div className="mt-6 p-6">
+              {parse(agreement, {
+                replace: (domNode: DOMNode) => {
+                  if (domNode instanceof Element && domNode.attribs) {
+                    const className = domNode.attribs.className || "";
+                    if (className.includes("bg-white")) {
+                      domNode.attribs.className = "bg-white rounded-lg shadow-sm border border-black-100 p-8";
+                    }
+                    if (className.includes("text-blue-600 leading-relaxed")) {
+                      domNode.attribs.className = "text-blue-600 leading-relaxed space-y-6";
+                    }
+                  }
+                  return domNode;
+                },
+              })}
             </div>
           </div>
+
         </div>
       </div>
     </div>
