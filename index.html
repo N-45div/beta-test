@@ -7,19 +7,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <title>Lawyal Tech</title>
     <style>
-      /* CSS to position the chatbots */
-      #chatbot-left {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        z-index: 1000;
+      /* Ensure chatbots are positioned correctly */
+      #crisp-chatbox {
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 20px !important;
+        z-index: 1000 !important;
       }
 
-      #chatbot-right {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1000;
+      /* Botpress chatbot container */
+      #bp-web-widget {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        z-index: 1000 !important;
+      }
+
+      /* Override any default chatbot styles if necessary */
+      #crisp-chatbox > div,
+      #bp-web-widget > iframe {
+        width: 350px !important;
+        height: 500px !important;
       }
     </style>
   </head>
@@ -27,25 +35,58 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- Left Chatbot (Crisp) -->
-    <div id="chatbot-left">
-      <script type="text/javascript">
-        window.$crisp = [];
-        window.CRISP_WEBSITE_ID = "cf9c462c-73de-461e-badf-ab3a1133bdde";
-        (function () {
-          var d = document;
-          var s = d.createElement("script");
-          s.src = "https://client.crisp.chat/l.js";
-          s.async = 1;
-          d.getElementsByTagName("head")[0].appendChild(s);
-        })();
-      </script>
-    </div>
+    <!-- Crisp Chatbot (Left Side) -->
+    <script type="text/javascript">
+      window.$crisp = [];
+      window.CRISP_WEBSITE_ID = "cf9c462c-73de-461e-badf-ab3a1133bdde";
+      (function () {
+        var d = document;
+        var s = d.createElement("script");
+        s.src = "https://client.crisp.chat/l.js";
+        s.async = 1;
+        d.getElementsByTagName("head")[0].appendChild(s);
+      })();
+    </script>
 
-    <!-- Right Chatbot (Botpress) -->
-    <div id="chatbot-right">
-      <script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
-      <script src="https://files.bpcontent.cloud/2025/03/06/13/20250306134604-8GJTNDYL.js"></script>
-    </div>
+    <!-- Botpress Chatbot (Right Side) -->
+    <script src="https://cdn.botpress.cloud/webchat/v2.2/inject.js"></script>
+    <script src="https://files.bpcontent.cloud/2025/03/06/13/20250306134604-8GJTNDYL.js"></script>
+
+    <!-- JavaScript to adjust chatbot positions dynamically -->
+    <script>
+      // Function to adjust Crisp chatbot position
+      function adjustCrispPosition() {
+        const crispChat = document.getElementById("crisp-chatbox");
+        if (crispChat) {
+          crispChat.style.position = "fixed";
+          crispChat.style.bottom = "20px";
+          crispChat.style.left = "20px";
+          crispChat.style.zIndex = "1000";
+        } else {
+          // Retry if the element isn't loaded yet
+          setTimeout(adjustCrispPosition, 500);
+        }
+      }
+
+      // Function to adjust Botpress chatbot position
+      function adjustBotpressPosition() {
+        const botpressChat = document.getElementById("bp-web-widget");
+        if (botpressChat) {
+          botpressChat.style.position = "fixed";
+          botpressChat.style.bottom = "20px";
+          botpressChat.style.right = "20px";
+          botpressChat.style.zIndex = "1000";
+        } else {
+          // Retry if the element isn't loaded yet
+          setTimeout(adjustBotpressPosition, 500);
+        }
+      }
+
+      // Run adjustments after page load
+      window.onload = function () {
+        adjustCrispPosition();
+        adjustBotpressPosition();
+      };
+    </script>
   </body>
 </html>
