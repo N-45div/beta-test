@@ -20,6 +20,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import Calculations from "./Pages/Calculations";
 import Calculations_2 from "./Pages/Calculations_2";
 
+
 const App = () => {
   return (
       <HighlightedTextProvider>

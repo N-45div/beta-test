@@ -10,7 +10,7 @@ import { determineQuestionType } from "../utils/questionTypeUtils";
 import { ThemeContext } from "../context/ThemeContext";
 import AIAnalysisPanel from "../components/AIAnalysisPanel";
 import { useLocation } from "react-router";
-
+import { CrispChat } from "../bot/knowledge";
 const icons = [
   { icon: <FaPenToSquare />, label: "Edit PlaceHolder" },
   { icon: <TbSettingsMinus />, label: "Small Condition" },
@@ -321,6 +321,7 @@ const LevelTwoPart_Two = () => {
           highlightedTexts={highlightedTexts}
           isDarkMode={isDarkMode}
         />
+        <CrispChat websiteId="cf9c462c-73de-461e-badf-ab3a1133bdde"/>
       </div>
     </div>
   );
