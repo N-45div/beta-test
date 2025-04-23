@@ -43,7 +43,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
   const [isRequired, setIsRequired] = useState(initialRequired);
   const [typeChanged, setTypeChanged] = useState(initialTypeChanged);
   const { findPlaceholderByValue, updateQuestion, determineQuestionType, questionMaps } = useQuestionEditContext();
-  const { primaryValue } = determineQuestionType(textValue);
+  const { primaryValue, validTypes } = determineQuestionType(textValue); // Now using validTypes
 
   const handleTypeSelect = (type: string) => {
     if (typeChanged) return;
@@ -98,8 +98,6 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
     setIsRequired(newRequired);
     onRequiredChange(index, newRequired);
   };
-
-  const dropdownOptions = ["Text", "Paragraph", "Email", "Radio", "Number", "Date"];
 
   return (
     <div className={`flex items-center space-x-8 w-full relative ${isFollowUp ? "ml-0" : ""}`}>
@@ -160,7 +158,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
                 }}
               >
                 <div className="hide-scrollbar">
-                  {dropdownOptions.map((type) => (
+                  {validTypes.map((type) => ( // Use validTypes from determineQuestionType
                     <div
                       key={type}
                       className={`px-4 py-2 cursor-pointer transition-all duration-200 ${
@@ -326,44 +324,56 @@ const Questionnaire_Level3 = () => {
   useEffect(() => {
     const processedTexts: string[] = [];
     const questionMap = new Map();
-
+  
     const isProbationaryClauseSelected = highlightedTexts.some((text) =>
       text.toLowerCase().includes("probationary period") && 
       text.includes("[Probation Period Length]") && 
       text.length > "[Probation Period Length]".length
     );
-
+  
+    // Filter questions, including [USA]
     const filteredQuestions = highlightedTexts.filter((text) => {
       const { primaryValue } = enhancedDetermineQuestionType(text);
       const isFollowUp = followUpQuestions.includes(primaryValue || "");
-
+  
       if (isProbationaryClauseSelected && text === "Probation Period Length") {
         return false;
       }
-
-      const shouldInclude = !isFollowUp || 
-                         (primaryValue === "What's the probation period length?" && text === "Probation Period Length" && !isProbationaryClauseSelected);
+  
+      const shouldInclude = 
+        !isFollowUp || 
+        text === "USA" || // Ensure [USA] is included
+        (primaryValue === "What's the probation period length?" && text === "Probation Period Length" && !isProbationaryClauseSelected);
       return shouldInclude;
     });
-
+  
     for (const text of filteredQuestions) {
       const { primaryValue } = enhancedDetermineQuestionType(text);
-      if (primaryValue && !questionMap.has(primaryValue)) {
-        questionMap.set(primaryValue, text);
+      const displayValue = primaryValue || text; // Fallback to text if no primaryValue
+      if (displayValue && !questionMap.has(displayValue)) {
+        questionMap.set(displayValue, text);
         processedTexts.push(text);
       }
     }
-
+  
+    // Ensure [USA] is in processedTexts if it's in highlightedTexts
+    if (highlightedTexts.includes("USA") && !processedTexts.includes("USA")) {
+      processedTexts.push("USA");
+    }
+  
     setUniqueQuestions(processedTexts);
     const initialRequired = initializeRequiredStatus(processedTexts);
     setRequiredQuestions(initialRequired);
     console.log("processed texts: ", processedTexts);
     const initialTexts = processedTexts.map(
-      (text) => determineQuestionType(text).primaryValue || "No text selected"
+      (text) => {
+        const { primaryValue } = determineQuestionType(text);
+        return primaryValue || "No text selected";
+      }
     );
     console.log("initialtexts: ", initialTexts);
-
-    // Load persisted question types from sessionStorage, default to "Text" if not found
+  
+    // Initialize question types
     const savedTypes = sessionStorage.getItem("selectedQuestionTypes");
     let initialTypes: string[];
     if (savedTypes) {
@@ -374,20 +384,20 @@ const Questionnaire_Level3 = () => {
     } else {
       initialTypes = processedTexts.map(() => "Text");
     }
-
-    // Load persisted typeChanged states from sessionStorage
+  
+    // Initialize typeChanged states, ensuring it's false for all questions initially
     const savedTypeChanged = sessionStorage.getItem("typeChangedStates");
     let initialTypeChanged: boolean[];
     if (savedTypeChanged) {
       initialTypeChanged = JSON.parse(savedTypeChanged);
       if (initialTypeChanged.length !== processedTexts.length) {
-        initialTypeChanged = processedTexts.map(() => false);
+        initialTypeChanged = processedTexts.map(() => false); // Reset to false for all
       }
     } else {
-      initialTypeChanged = processedTexts.map(() => false);
+      initialTypeChanged = processedTexts.map(() => false); // All false initially
     }
-
-    // Load persisted question order from sessionStorage
+  
+    // Initialize question order
     const savedOrder = sessionStorage.getItem("questionOrder");
     let initialOrder: number[];
     if (savedOrder) {
@@ -398,7 +408,7 @@ const Questionnaire_Level3 = () => {
     } else {
       initialOrder = processedTexts.map((_, index) => index);
     }
-
+  
     setQuestionOrder(initialOrder);
     setQuestionTexts(initialTexts);
     setSelectedTypes(initialTypes);
@@ -406,8 +416,8 @@ const Questionnaire_Level3 = () => {
     setTypeChangedStates(initialTypeChanged);
     setScoredQuestions({});
     setBonusAwarded(false);
-
-    // Save the initial types, typeChanged states, and question order to sessionStorage
+  
+    // Save to sessionStorage
     sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(initialTypes));
     sessionStorage.setItem("typeChangedStates", JSON.stringify(initialTypeChanged));
     sessionStorage.setItem("questionOrder", JSON.stringify(initialOrder));

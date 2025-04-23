@@ -34,37 +34,70 @@ const Live_Generation_2 = () => {
     } else {
       questionOrder = originalHighlightedTexts.map((_, index) => index);
     }
-
-    // Reorder highlightedTexts and related arrays based on the saved order
+  
+    // Reprocess highlighted texts
     const processedTexts: string[] = [];
     const questionMap = new Map();
-
-    for (const text of originalHighlightedTexts) {
+  
+    const isProbationaryClauseSelected = originalHighlightedTexts.some((text) =>
+      text.toLowerCase().includes("probationary period") &&
+      text.includes("[Probation Period Length]") &&
+      text.length > "[Probation Period Length]".length
+    );
+  
+    const followUpQuestions = [
+      "What's the probation period length?",
+      "What's the probation extension length?",
+      "How many weeks?",
+      "Who is the HR/Relevant Contact?",
+    ];
+  
+    // Filter questions
+    const filteredQuestions = originalHighlightedTexts.filter((text) => {
       const { primaryValue } = determineQuestionType(text);
-      if (primaryValue && !questionMap.has(primaryValue)) {
-        questionMap.set(primaryValue, text);
+      const isFollowUp = followUpQuestions.includes(primaryValue || "");
+  
+      if (isProbationaryClauseSelected && text === "Probation Period Length") {
+        return false;
+      }
+  
+      const shouldInclude =
+        !isFollowUp ||
+        (primaryValue === "What's the probation period length?" &&
+          text === "Probation Period Length" &&
+          !isProbationaryClauseSelected);
+      return shouldInclude;
+    });
+  
+    for (const text of filteredQuestions) {
+      const { primaryValue } = determineQuestionType(text);
+      const displayValue = primaryValue;
+      if (displayValue && !questionMap.has(displayValue)) {
+        questionMap.set(displayValue, text);
         processedTexts.push(text);
       }
     }
-
+  
+    // Removed the hardcoded inclusion of [USA] since it's now in textTypes
+    // Reorder based on questionOrder
     const reorderedHighlightedTexts = questionOrder
-      .map(index => processedTexts[index])
-      .filter(text => text !== undefined);
+      .map((index) => processedTexts[index])
+      .filter((text) => text !== undefined);
     const reorderedSelectedTypes = questionOrder
-      .map(index => originalSelectedTypes[index])
-      .filter(type => type !== undefined);
+      .map((index) => originalSelectedTypes[index])
+      .filter((type) => type !== undefined);
     const reorderedEditedQuestions = questionOrder
-      .map(index => originalEditedQuestions[index])
-      .filter(text => text !== undefined);
+      .map((index) => originalEditedQuestions[index])
+      .filter((text) => text !== undefined);
     const reorderedRequiredQuestions = questionOrder
-      .map(index => originalRequiredQuestions[index])
-      .filter(req => req !== undefined);
-
+      .map((index) => originalRequiredQuestions[index])
+      .filter((req) => req !== undefined);
+  
     setHighlightedTexts(reorderedHighlightedTexts);
     setLocalSelectedTypes(reorderedSelectedTypes);
     setLocalEditedQuestions(reorderedEditedQuestions);
     setLocalRequiredQuestions(reorderedRequiredQuestions);
-
+  
     const initial = initializeUserAnswers(reorderedHighlightedTexts, reorderedSelectedTypes);
     setUserAnswers(initial);
   }, [originalHighlightedTexts, originalSelectedTypes, originalEditedQuestions, originalRequiredQuestions]);
@@ -151,6 +184,12 @@ const Live_Generation_2 = () => {
           updatedText = updatedText.replace(
             new RegExp(`\\[USD\\]`, "gi"),
             `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${salaryData?.currency || "[USD]"}</span>`
+          );
+        } else if (question === "What is the governing country?") {
+          const countryAnswer = typeof answer === "string" && answer.trim() ? answer : "[USA]";
+          updatedText = updatedText.replace(
+            new RegExp(`\\[USA\\]`, "gi"),
+            `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${countryAnswer}</span>`
           );
         } else if (typeof answer === "boolean") {
           if (!answer) {
@@ -348,7 +387,6 @@ const Live_Generation_2 = () => {
     const isRequired = requiredQuestions[index] || false;
 
     if (primaryValue === "What's the annual salary?") {
-      // Type guard to ensure answer is of the correct shape
       const answerWithCurrency = typeof answer === "object" && answer !== null && "amount" in answer && "currency" in answer
         ? answer as { amount: string; currency: string }
         : { amount: "", currency: "USD" };
@@ -368,7 +406,6 @@ const Live_Generation_2 = () => {
                   const value = e.target.value;
                   const error = validateInput("Number", value);
                   setInputErrors((prev) => ({ ...prev, [primaryValue]: error }));
-                  // Type guard to ensure userAnswers[primaryValue] is the correct type
                   const currentAnswer = userAnswers[primaryValue];
                   const currentCurrency = typeof currentAnswer === "object" && currentAnswer !== null && "currency" in currentAnswer
                     ? (currentAnswer as { amount: string; currency: string }).currency
