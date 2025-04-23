@@ -183,7 +183,7 @@ const LevelTwoPart_Two = () => {
       <Navbar
         level={"/Level-Two-Part-Two"}
         questionnaire={"/Questionnaire"}
-        live_generation={"/Live_Generation_2"}
+        live_generation={"/Live_Generation"}
       />
       <div className="fixed flex top-16 right-0 z-50 px-6 py-3 space-x-6">
         {icons.map(({ icon, label }, index) => (
