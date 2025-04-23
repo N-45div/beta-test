@@ -129,14 +129,29 @@ const Level3_Quiz = () => {
       }
       return;
     }
-    if (highlightedTexts.includes(textWithoutBrackets)) {
+
+    // Prepare the text to be added to highlightedTexts
+    let textToAdd = textWithoutBrackets;
+    if (isBigCondition) {
+      const headingsToStrip = ["PROBATIONARY PERIOD", "PENSION"];
+      for (const heading of headingsToStrip) {
+        if (textWithoutBrackets.startsWith(heading)) {
+          textToAdd = textWithoutBrackets.slice(heading.length).trim();
+          break;
+        }
+      }
+    }
+
+    // Check for duplicates before adding to highlightedTexts
+    if (highlightedTexts.includes(textToAdd)) {
       alert("This text has already been selected.");
       return;
     }
+
     // Handle highlighting and adding to context
     if (label === "Edit PlaceHolder") {
       if (!hasValidBrackets || selectedText.length >= 40) return;
-      addHighlightedText(textWithoutBrackets);
+      addHighlightedText(textToAdd);
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(255, 245, 157, 0.5)" : "rgba(255, 245, 157, 0.7)";
       span.textContent = selectedText;
@@ -145,7 +160,7 @@ const Level3_Quiz = () => {
     }
     else if (label === "Small Condition") {
       if (!isSmallCondition || selectedText.length < 35 || selectedText.length > 450) return;
-      addHighlightedText(textWithoutBrackets);
+      addHighlightedText(textToAdd);
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(129, 236, 236, 0.5)" : "rgba(129, 236, 236, 0.7)";
       span.textContent = selectedText;
@@ -155,16 +170,7 @@ const Level3_Quiz = () => {
     else if (label === "Big Condition") {
       if (!isBigCondition) return;
 
-      let clauseContent = textWithoutBrackets;
-      const headingsToStrip = ["PROBATIONARY PERIOD", "PENSION"];
-      for (const heading of headingsToStrip) {
-        if (textWithoutBrackets.startsWith(heading)) {
-          clauseContent = textWithoutBrackets.slice(heading.length).trim();
-          break;
-        }
-      }
-
-      addHighlightedText(clauseContent);
+      addHighlightedText(textToAdd);
 
       const fragment = document.createDocumentFragment();
       const contents = range.cloneContents();
@@ -204,16 +210,18 @@ const Level3_Quiz = () => {
 
       const probationClause = "(The first [Probation Period Length] of employment will be a probationary period. The Company shall assess the Employee's performance and suitability during this time. The Company may extend the probationary period by up to [Probation Extension Length] if further assessment is required. During the probationary period, either party may terminate the employment by providing [one week's] written notice. Upon successful completion, the Employee will be confirmed in their role.)";
       const terminationClause = "(After the probationary period, either party may terminate the employment by providing [Notice Period] written notice. The Company reserves the right to make a payment in lieu of notice. The Company may summarily dismiss the Employee without notice in cases of gross misconduct.)";
-      if (selectedText === probationClause) {
+      if (selectedText === probationClause && !highlightedTexts.includes("Probation Period Length")) {
         addHighlightedText("Probation Period Length");
-      } else if (selectedText === terminationClause) {
+      } else if (selectedText === terminationClause && !highlightedTexts.includes("Notice Period")) {
         addHighlightedText("Notice Period");
       }
     }
     else if (label === "Loop") {
       if (!isLoop) return;
-      addHighlightedText(textWithoutBrackets);
-      addHighlightedText("Other Locations");
+      addHighlightedText(textToAdd);
+      if (!highlightedTexts.includes("Other Locations")) {
+        addHighlightedText("Other Locations");
+      }
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(0, 245, 157, 0.5)" : "rgba(0, 245, 157, 0.7)";
       span.textContent = selectedText;
@@ -222,7 +230,7 @@ const Level3_Quiz = () => {
     }
     else if (label === "Calculations") {
       if (textWithoutBrackets !== "Unused Holiday Days") return;
-      addHighlightedText(textWithoutBrackets);
+      addHighlightedText(textToAdd);
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(245, 0, 221, 0.61)" : "rgba(245, 0, 221, 0.81)";
       span.textContent = selectedText;

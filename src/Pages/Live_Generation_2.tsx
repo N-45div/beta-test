@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import Navbar from "../components/Navbar";
-// import { determineQuestionType, findPlaceholderByValue } from "../utils/questionTypeUtils";
 import { documentText } from "../utils/EmploymentAgreement";
 import { useHighlightedText } from "../context/HighlightedTextContext";
 import { useQuestionType } from "../context/QuestionTypeContext";
@@ -9,102 +8,113 @@ import { useQuestionEditContext } from "../context/QuestionEditContext";
 import { ThemeContext } from "../context/ThemeContext";
 import parse, { DOMNode, Element } from "html-react-parser";
 
-
 const Live_Generation_2 = () => {
   const { isDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
-  const { highlightedTexts } = useHighlightedText();
-  const { selectedTypes, setSelectedTypes, editedQuestions, setEditedQuestions } = useQuestionType();
+  const { highlightedTexts: originalHighlightedTexts } = useHighlightedText();
+  const { selectedTypes: originalSelectedTypes, setSelectedTypes, editedQuestions: originalEditedQuestions, setEditedQuestions, requiredQuestions: originalRequiredQuestions } = useQuestionType();
   const { determineQuestionType, findPlaceholderByValue } = useQuestionEditContext();
-  // const [questionClauseMap, setQuestionClauseMap] = useState<{ [key: string]: string[] }>({});
-  // const [skippedQuestions, setSkippedQuestions] = useState<string[]>([]);
   const [agreement, setAgreement] = useState<string>(documentText);
   const [inputErrors, setInputErrors] = useState<{ [key: string]: string }>({});
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [additionalLocations, setAdditionalLocations] = useState<string[]>([]);
   const [locations] = useState<string[]>([]);
-  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | boolean }>({});
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | boolean | null | { amount: string; currency: string } }>({});
+  const [highlightedTexts, setHighlightedTexts] = useState<string[]>(originalHighlightedTexts);
+  const [selectedTypes, setLocalSelectedTypes] = useState<(string | null)[]>(originalSelectedTypes);
+  const [editedQuestions, setLocalEditedQuestions] = useState<string[]>(originalEditedQuestions);
+  const [requiredQuestions, setLocalRequiredQuestions] = useState<boolean[]>(originalRequiredQuestions);
 
   useEffect(() => {
-    const initial = initializeUserAnswers(highlightedTexts, selectedTypes);
-    setUserAnswers(initial);
-  }, [highlightedTexts, selectedTypes]);
+    // Load the question order from sessionStorage
+    const savedOrder = sessionStorage.getItem("questionOrder");
+    let questionOrder: number[] = [];
+    if (savedOrder) {
+      questionOrder = JSON.parse(savedOrder);
+    } else {
+      questionOrder = originalHighlightedTexts.map((_, index) => index);
+    }
 
-  useEffect(() => {
+    // Reorder highlightedTexts and related arrays based on the saved order
     const processedTexts: string[] = [];
     const questionMap = new Map();
 
-    for (const text of highlightedTexts) {
+    for (const text of originalHighlightedTexts) {
       const { primaryValue } = determineQuestionType(text);
       if (primaryValue && !questionMap.has(primaryValue)) {
         questionMap.set(primaryValue, text);
         processedTexts.push(text);
       }
     }
-    console.log("processed texts: ", processedTexts);
-      const initialTexts = processedTexts.map(
-        (text) => determineQuestionType(text).primaryValue || "No text selected"
-      );
-      const initialTypes = processedTexts.map((text) => {
-        const { primaryType } = determineQuestionType(text);
-        return primaryType !== "Unknown" ? primaryType : "Text";
-      });
-      console.log("initial texts: ", initialTexts);
-      console.log("initial types: ", initialTypes);
-      setSelectedTypes(initialTypes);
-      setEditedQuestions(initialTexts);
-  }, [highlightedTexts, selectedTypes.length, editedQuestions.length, setSelectedTypes, setEditedQuestions]);
-  useEffect(() => {
 
-    console.log("selected types: ", selectedTypes);
-    console.log("edited questions: ", editedQuestions);
-  }, [editedQuestions, selectedTypes]);
+    const reorderedHighlightedTexts = questionOrder
+      .map(index => processedTexts[index])
+      .filter(text => text !== undefined);
+    const reorderedSelectedTypes = questionOrder
+      .map(index => originalSelectedTypes[index])
+      .filter(type => type !== undefined);
+    const reorderedEditedQuestions = questionOrder
+      .map(index => originalEditedQuestions[index])
+      .filter(text => text !== undefined);
+    const reorderedRequiredQuestions = questionOrder
+      .map(index => originalRequiredQuestions[index])
+      .filter(req => req !== undefined);
 
+    setHighlightedTexts(reorderedHighlightedTexts);
+    setLocalSelectedTypes(reorderedSelectedTypes);
+    setLocalEditedQuestions(reorderedEditedQuestions);
+    setLocalRequiredQuestions(reorderedRequiredQuestions);
 
-  useEffect(() => {
-    // This code runs only once when the component mounts
-    console.log("user answers: ", userAnswers);
-  
-    // You can also call initialization logic here
-  }, [userAnswers]);
+    const initial = initializeUserAnswers(reorderedHighlightedTexts, reorderedSelectedTypes);
+    setUserAnswers(initial);
+  }, [originalHighlightedTexts, originalSelectedTypes, originalEditedQuestions, originalRequiredQuestions]);
 
-  function initializeUserAnswers(highlightedTexts: string[], selectedTypes: (string | null)[]): { [key: string]: string | boolean } {
-    const initialAnswers: { [key: string]: string | boolean } = {};
+  function initializeUserAnswers(highlightedTexts: string[], selectedTypes: (string | null)[]): { [key: string]: string | boolean | null | { amount: string; currency: string } } {
+    const initialAnswers: { [key: string]: string | boolean | null | { amount: string; currency: string } } = {};
     highlightedTexts.forEach((text, index) => {
       const { primaryValue } = determineQuestionType(text);
-      console.log("initial primary value: ", primaryValue)
       const type = selectedTypes[index] || "Text";
-      console.log("initial type: ", type)
       if (primaryValue) {
-        initialAnswers[primaryValue] = type === "Radio" ? false : "";
-        console.log("initial answers: ", initialAnswers)
+        if (primaryValue === "What's the annual salary?") {
+          initialAnswers[primaryValue] = { amount: "", currency: "USD" };
+        } else {
+          initialAnswers[primaryValue] = type === "Radio" ? null : "";
+        }
       }
     });
     return initialAnswers;
   }
 
-
-
-
   useEffect(() => {
     let updatedText = documentText;
-    
+
+    const probationAnswer = userAnswers["Is the clause of probationary period applicable?"];
+    if (probationAnswer === null || probationAnswer === false) {
+      updatedText = updatedText.replace(
+        /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+        ""
+      );
+    }
+
+    const pensionAnswer = userAnswers["Is the Pension clause applicable?"];
+    if (pensionAnswer === null || pensionAnswer === false) {
+      updatedText = updatedText.replace(
+        /<h2[^>]*>[^<]*PENSION[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+        ""
+      );
+    }
+
     Object.entries(userAnswers).forEach(([question, answer]) => {
       const placeholder = findPlaceholderByValue(question);
 
-      // Handles calculations
-      if (placeholder === "Unused Holiday Days" && typeof(answer) === "string") {
-        console.log("here");
+      if (placeholder === "Unused Holiday Days" && typeof answer === "string") {
         const storedOperationType = localStorage.getItem("operationType");
         const storedOperationValue = localStorage.getItem("operationValue");
         const operationValue = storedOperationValue ? parseFloat(storedOperationValue) : null;
-        console.log("operation value: ", operationValue);
-        let calculatedValue = null;
+        let calculatedValue: number | null = null;
         let floatAnswer = parseFloat(answer).toFixed(2);
         const numericAnswer = parseFloat(floatAnswer);
-        console.log("numeric answer: ", numericAnswer);
         if (storedOperationType && operationValue !== null) {
-          console.log("in if statmeent");
           switch (storedOperationType.toLowerCase()) {
             case "add":
               calculatedValue = numericAnswer + operationValue;
@@ -116,13 +126,12 @@ const Live_Generation_2 = () => {
               calculatedValue = numericAnswer * operationValue;
               break;
             case "divide":
-              calculatedValue = operationValue !== 0 ? numericAnswer / operationValue : "Error"; // Prevent division by zero
+              calculatedValue = operationValue !== 0 ? numericAnswer / operationValue : "Error";
               break;
             default:
               calculatedValue = null;
           }
         }
-        console.log("calculatedvalue: ", calculatedValue);
         localStorage.setItem("calculatedValue", calculatedValue !== null ? String(calculatedValue) : "0");
 
         updatedText = updatedText.replace(
@@ -130,12 +139,21 @@ const Live_Generation_2 = () => {
           `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${calculatedValue}</span>`
         );
       }
-      // If it's a placeholder field (not a radio button question)
+
       if (placeholder) {
         const escapedPlaceholder = placeholder.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&");
-        if (typeof answer === "boolean") {
+        if (question === "What's the annual salary?") {
+          const salaryData = answer as { amount: string; currency: string } | undefined;
+          updatedText = updatedText.replace(
+            new RegExp(`\\[${escapedPlaceholder}\\]`, "gi"),
+            `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${salaryData?.amount || "[Annual Salary]"}</span>`
+          );
+          updatedText = updatedText.replace(
+            new RegExp(`\\[USD\\]`, "gi"),
+            `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${salaryData?.currency || "[USD]"}</span>`
+          );
+        } else if (typeof answer === "boolean") {
           if (!answer) {
-            // handles probation clause
             if (question === "Is the clause of probationary period applicable?") {
               if (answer === false) {
                 updatedText = updatedText.replace(
@@ -158,14 +176,12 @@ const Live_Generation_2 = () => {
             `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${answer}</span>`
           );
         } else {
-          // Keep the placeholder as is if no answer
           updatedText = updatedText.replace(
             new RegExp(`\\[${escapedPlaceholder}\\]`, "gi"),
             `[${placeholder}]`
           );
         }
       } else {
-        // Handle radio button questions (which can affect section visibility)
         if (question === "Is the sick pay policy applicable?") {
           const sickPayClause = "{The Employee may also be entitled to Company sick pay of [Details of Company Sick Pay Policy]}";
           if (answer === false) {
@@ -176,17 +192,8 @@ const Live_Generation_2 = () => {
               `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${userAnswers["What's the sick pay policy?"] as string}</span>`
             );
           }
-        } else if (question === "Is the clause of probationary period applicable?") {
-          if (answer === false) {
-            // Remove entire PROBATIONARY PERIOD section (h2 + p)
-            updatedText = updatedText.replace(
-              /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
-              ""
-            );
-          }
         } else if (question === "Is the termination clause applicable?") {
           if (answer === false) {
-            // Find and remove only the termination clause content while keeping the section
             const terminationSection = updatedText.match(/<h2[^>]*>TERMINATION<\/h2>\s*<p[^>]*>([\s\S]*?)<\/p>/i);
             if (terminationSection) {
               const sectionWithoutClause = terminationSection[0].replace(/\(After the probationary period.*?gross misconduct\.\)/, '');
@@ -244,40 +251,37 @@ const Live_Generation_2 = () => {
   const handleAnswerChange = useCallback(
     (
       index: number,
-      value: string | boolean,
+      value: string | boolean | { amount: string; currency: string },
       followUpQuestion?: string,
       isAdditional?: boolean,
       locationNum?: number
     ) => {
       const { primaryValue } = determineQuestionType(highlightedTexts[index] || "");
       if (!primaryValue) return;
-  
+
       const currentType = selectedTypes[index] || "Text";
-  
-      if (typeof value === "string" && currentType !== "Radio") {
+
+      if (typeof value === "string" && currentType !== "Radio" && primaryValue !== "What's the annual salary?") {
         const error = validateInput(currentType, value);
         setInputErrors((prev) => ({
           ...prev,
           [primaryValue]: error,
         }));
       }
-  
-      // For radio buttons, use the boolean value directly
-      const finalValue = currentType === "Radio" ? Boolean(value) : value;
-  
+
+      const finalValue = currentType === "Radio" ? value : value;
+
       if (isAdditional && locationNum !== undefined) {
         setUserAnswers((prev) => {
-          // Create a safe string value to work with
           const currentValue = prev[primaryValue];
           let stringValue = "";
           
-          if (typeof currentValue === 'string') {
+          if (typeof currentValue === "string") {
             stringValue = currentValue;
-          } else if (typeof currentValue === 'boolean') {
+          } else if (typeof currentValue === "boolean") {
             stringValue = currentValue.toString();
           }
           
-          // Now safely split the string
           let values = stringValue
             .split(/\s*,\s*|\s*and\s*|\s*, and\s*/)
             .filter(Boolean);
@@ -314,16 +318,15 @@ const Live_Generation_2 = () => {
     },
     [highlightedTexts, selectedTypes]
   );
-  
-  
+
   const handleAddMore = () => {
     setAdditionalLocations((prevLocations) => [...prevLocations, ""]);
   };
-  
+
   const handleLocationChange = (index: number, value: string) => {
     setAdditionalLocations((prevLocations) => {
       const updatedLocations = [...prevLocations];
-      updatedLocations[index] = value; // Update the specific location at the given index
+      updatedLocations[index] = value;
       return updatedLocations;
     });
     console.log(additionalLocations);
@@ -335,21 +338,87 @@ const Live_Generation_2 = () => {
     if (!primaryValue) return null;
 
     const currentType = selectedTypes[index] || "Text";
-    const answer = userAnswers[primaryValue] !== undefined ? userAnswers[primaryValue] : (currentType === "Radio" ? false : "");
+    const answer = userAnswers[primaryValue] !== undefined ? userAnswers[primaryValue] : (currentType === "Radio" ? null : "");
     const error = inputErrors[primaryValue] || "";
     const isAdditionalLocationQuestion =
-    primaryValue === "What is the additional work location?";
+      primaryValue === "What is the additional work location?";
     let includeAdditional = userAnswers["Does the employee need to work at additional locations besides the normal place of work?"] !== undefined
-    ? userAnswers["Does the employee need to work at additional locations besides the normal place of work?"]
-    : true;
-    console.log("includeadditional: ", includeAdditional);
-    console.log("currenttype: ", currentType)
+      ? userAnswers["Does the employee need to work at additional locations besides the normal place of work?"]
+      : true;
+    const isRequired = requiredQuestions[index] || false;
+
+    if (primaryValue === "What's the annual salary?") {
+      // Type guard to ensure answer is of the correct shape
+      const answerWithCurrency = typeof answer === "object" && answer !== null && "amount" in answer && "currency" in answer
+        ? answer as { amount: string; currency: string }
+        : { amount: "", currency: "USD" };
+
+      return (
+        <div key={index} className="mb-12">
+          <div className="w-full">
+            <p className={`text-lg font-medium ${isDarkMode ? "text-teal-200" : "text-teal-900"}`}>
+              {editedQuestions[index] || primaryValue || "Unnamed Question"}
+              {isRequired && <span className="text-red-500 ml-2">*</span>}
+            </p>
+            <div className="flex items-center space-x-4 mt-4">
+              <input
+                type="number"
+                value={answerWithCurrency.amount}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const error = validateInput("Number", value);
+                  setInputErrors((prev) => ({ ...prev, [primaryValue]: error }));
+                  // Type guard to ensure userAnswers[primaryValue] is the correct type
+                  const currentAnswer = userAnswers[primaryValue];
+                  const currentCurrency = typeof currentAnswer === "object" && currentAnswer !== null && "currency" in currentAnswer
+                    ? (currentAnswer as { amount: string; currency: string }).currency
+                    : "USD";
+                  handleAnswerChange(index, { amount: value, currency: currentCurrency });
+                }}
+                ref={(el) => { if (el) inputRefs.current[index] = el; }}
+                className={`p-3 w-1/2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${
+                  isDarkMode
+                    ? `bg-gray-700/80 border ${error ? "border-red-400" : "border-teal-600"} focus:ring-teal-400 text-teal-200 placeholder-teal-300/70`
+                    : `bg-white/80 border ${error ? "border-red-400" : "border-teal-200"} focus:ring-teal-500 text-teal-800 placeholder-teal-400/70`
+                }`}
+                placeholder="Enter amount"
+              />
+              <select
+                value={answerWithCurrency.currency}
+                onChange={(e) => {
+                  handleAnswerChange(index, { amount: answerWithCurrency.amount, currency: e.target.value });
+                }}
+                className={`p-3 rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${
+                  isDarkMode
+                    ? "bg-gray-700/80 border border-teal-600 focus:ring-teal-400 text-teal-200"
+                    : "bg-white/80 border border-teal-200 focus:ring-teal-500 text-teal-800"
+                }`}
+                required={isRequired}
+              >
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="INR">INR</option>
+                <option value="SEK">SEK</option>
+                <option value="AUD">AUD</option>
+                <option value="JPY">JPY</option>
+                <option value="CAD">CAD</option>
+                <option value="CHF">CHF</option>
+              </select>
+            </div>
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div key={index} className="mb-8">
+      <div key={index} className="mb-12">
         <div className="w-full">
           {includeAdditional || !isAdditionalLocationQuestion ? (
             <p className={`text-lg font-medium ${isDarkMode ? "text-teal-200" : "text-teal-900"}`}>
               {editedQuestions[index] || primaryValue || "Unnamed Question"}
+              {isRequired && <span className="text-red-500 ml-2">*</span>}
             </p>
           ) : null}
           {currentType === "Radio" ? (
@@ -362,6 +431,7 @@ const Live_Generation_2 = () => {
                       checked={answer === true}
                       onChange={() => handleAnswerChange(index, true, "What's the sick pay policy?")}
                       className={`cursor-pointer ${isDarkMode ? "text-teal-500 focus:ring-teal-400" : "text-teal-600 focus:ring-teal-500"}`}
+                      required={isRequired}
                     />
                     <span>Yes</span>
                   </label>
@@ -371,6 +441,7 @@ const Live_Generation_2 = () => {
                       checked={answer === false}
                       onChange={() => handleAnswerChange(index, false)}
                       className={`cursor-pointer ${isDarkMode ? "text-teal-500 focus:ring-teal-400" : "text-teal-600 focus:ring-teal-500"}`}
+                      required={isRequired}
                     />
                     <span>No</span>
                   </label>
@@ -391,6 +462,7 @@ const Live_Generation_2 = () => {
                         : "bg-white/80 border border-teal-200 focus:ring-teal-500 text-teal-800 placeholder-teal-400/70"
                     }`}
                     placeholder="What's the sick pay policy?"
+                    required={isRequired}
                   />
                 )}
               </>
@@ -402,6 +474,7 @@ const Live_Generation_2 = () => {
                     checked={answer === true}
                     onChange={() => handleAnswerChange(index, true)}
                     className={`cursor-pointer ${isDarkMode ? "text-teal-500 focus:ring-teal-400" : "text-teal-600 focus:ring-teal-500"}`}
+                    required={isRequired}
                   />
                   <span>Yes</span>
                 </label>
@@ -411,6 +484,7 @@ const Live_Generation_2 = () => {
                     checked={answer === false}
                     onChange={() => handleAnswerChange(index, false)}
                     className={`cursor-pointer ${isDarkMode ? "text-teal-500 focus:ring-teal-400" : "text-teal-600 focus:ring-teal-500"}`}
+                    required={isRequired}
                   />
                   <span>No</span>
                 </label>
@@ -429,6 +503,7 @@ const Live_Generation_2 = () => {
                     : `bg-white/80 border ${error ? "border-red-400" : "border-teal-200"} focus:ring-teal-500 text-teal-800 placeholder-teal-400/70`
                 }`}
                 placeholder="Enter a number"
+                required={isRequired}
               />
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </>
@@ -445,6 +520,7 @@ const Live_Generation_2 = () => {
                     : `bg-white/80 border ${error ? "border-red-400" : "border-teal-200"} focus:ring-teal-500 text-teal-800`
                 }`}
                 placeholder="Select a date"
+                required={isRequired}
               />
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </>
@@ -461,6 +537,7 @@ const Live_Generation_2 = () => {
                     : `bg-white/80 border ${error ? "border-red-400" : "border-teal-200"} focus:ring-teal-500 text-teal-800 placeholder-teal-400/70`
                 }`}
                 placeholder="Enter an email address"
+                required={isRequired}
               />
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </>
@@ -469,6 +546,7 @@ const Live_Generation_2 = () => {
               <input
                 ref={(el) => { if (el) inputRefs.current[index] = el; }}
                 type="text"
+                value={(userAnswers[primaryValue] as string) || ""}
                 onChange={(e) => handleAnswerChange(index, e.target.value)}
                 className={`mt-4 p-3 w-full rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${
                   isDarkMode
@@ -476,6 +554,7 @@ const Live_Generation_2 = () => {
                     : `bg-white/80 border ${error ? "border-red-400" : "border-teal-200"} focus:ring-teal-500 text-teal-800 placeholder-teal-400/70`
                 }`}
                 placeholder="Enter your answer"
+                required={isRequired}
               />
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </>
@@ -492,6 +571,7 @@ const Live_Generation_2 = () => {
                 }`}
                 placeholder="Enter your answer"
                 rows={3}
+                required={isRequired}
               />
               {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </>
@@ -510,18 +590,16 @@ const Live_Generation_2 = () => {
                   value={location}
                   onChange={(e) => {
                     const newValue = e.target.value;
-                    handleLocationChange(idx, newValue); // Update additional locations
+                    handleLocationChange(idx, newValue);
                     handleAnswerChange(index, newValue, undefined, true, idx + 1); 
                   }}
-                  // onChange={(e) => {
-                  //   handleAnswerChange(index, e.target.value);
-                  // }}
                   className={`mt-4 p-3 w-full rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${
                     isDarkMode
                       ? "bg-gray-700/80 border border-teal-600 focus:ring-teal-400 text-teal-200 placeholder-teal-300/70"
                       : "bg-white/80 border border-teal-200 focus:ring-teal-500 text-teal-800 placeholder-teal-400/70"
                   }`}
                   placeholder="Enter additional location"
+                  required={isRequired}
                 />
               </div>
             ))}
@@ -548,8 +626,29 @@ const Live_Generation_2 = () => {
       alert("Please correct all input errors before finishing.");
       return;
     }
+
+    const unansweredRequiredFields = highlightedTexts
+      .map((text, index) => {
+        const { primaryValue } = determineQuestionType(text);
+        const isRequired = requiredQuestions[index] || false;
+        if (!primaryValue || !isRequired) return null;
+        
+        const answer = userAnswers[primaryValue];
+        if (answer === null || answer === "" || (typeof answer === "object" && answer !== null && (!answer.amount || !answer.currency))) {
+          return primaryValue;
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    if (unansweredRequiredFields.length > 0) {
+      alert(`Please answer all required questions: ${unansweredRequiredFields.join(", ")}`);
+      return;
+    }
+
     navigate("/Finish", { state: { userAnswers } });
   };
+
   const storedLevel = sessionStorage.getItem("level") ?? "/Level-Two-Part-Two";
   return (
     <div
@@ -603,20 +702,6 @@ const Live_Generation_2 = () => {
                 </p>
               </div>
             )}
-            {/* {hasAdditionalLocationKey && (
-            <div className="flex justify-end mt-8">
-              <button
-                className={`px-6 py-3 text-white rounded-lg shadow-md transform hover:scale-105 transition-all duration-300 ${
-                  isDarkMode
-                    ? "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800"
-                    : "bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-500 hover:to-cyan-500"
-                }`}
-                // onClick={handleAddMore}
-              >
-                Add More Locations
-              </button>
-            </div>
-          )} */}
           </div>
           <div
             className={`w-1/2 pl-8 rounded-xl shadow-lg border ${
@@ -642,7 +727,6 @@ const Live_Generation_2 = () => {
               })}
             </div>
           </div>
-
         </div>
       </div>
     </div>

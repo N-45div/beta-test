@@ -8,7 +8,7 @@ import { findPlaceholderByValue } from "../utils/questionTypeUtils";
 import { ThemeContext } from "../context/ThemeContext";
 
 interface UserAnswers {
-  [key: string]: string | boolean;
+  [key: string]: string | boolean | null | { amount: string; currency: string };
 }
 
 const processAgreement = (html: string, answers: UserAnswers) => {
@@ -25,6 +25,24 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     }
   );
 
+  // Handle Probationary Period clause (hide by default if null or false)
+  const probationAnswer = answers["Is the clause of probationary period applicable?"];
+  if (probationAnswer === null || probationAnswer === false) {
+    updatedHtml = updatedHtml.replace(
+      /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+      ""
+    );
+  }
+
+  // Handle Pension clause (hide by default if null or false)
+  const pensionAnswer = answers["Is the Pension clause applicable?"];
+  if (pensionAnswer === null || pensionAnswer === false) {
+    updatedHtml = updatedHtml.replace(
+      /<h2[^>]*>[^<]*PENSION[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+      ""
+    );
+  }
+
   Object.entries(answers).forEach(([question, answer]) => {
     const placeholder = findPlaceholderByValue(question);
     // Handles calculations
@@ -36,9 +54,20 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     }
     if (placeholder) {
       const escapedPlaceholder = placeholder.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&");
-      if (typeof answer === "boolean") {
+      if (question === "What's the annual salary?") {
+        const salaryData = answer as { amount: string; currency: string } | undefined;
+        // Replace [Annual Salary] with the amount
+        updatedHtml = updatedHtml.replace(
+          new RegExp(`\\[${escapedPlaceholder}\\]`, "gi"),
+          salaryData?.amount || "[Annual Salary]"
+        );
+        // Replace [USD] with the currency
+        updatedHtml = updatedHtml.replace(
+          new RegExp(`\\[USD\\]`, "gi"),
+          salaryData?.currency || "[USD]"
+        );
+      } else if (typeof answer === "boolean") {
         if (!answer) {
-          // handles probation clause
           if (question === "Is the clause of probationary period applicable?") {
             if (answer === false) {
               updatedHtml = updatedHtml.replace(
@@ -76,12 +105,6 @@ const processAgreement = (html: string, answers: UserAnswers) => {
             "[Details of Company Sick Pay Policy]",
             answers["What's the sick pay policy?"] as string
           );
-        }
-      } else if (question === "Is the clause of probationary period applicable?" && answer === false) {
-        const probationClauseStart = updatedHtml.indexOf('<h2 className="text-2xl font-bold mt-6">PROBATIONARY PERIOD</h2>');
-        const probationClauseEnd = updatedHtml.indexOf('<h2 className="text-2xl font-bold mt-6">JOB TITLE AND DUTIES</h2>');
-        if (probationClauseStart !== -1 && probationClauseEnd !== -1) {
-          updatedHtml = updatedHtml.slice(0, probationClauseStart) + updatedHtml.slice(probationClauseEnd);
         }
       } else if (question === "Is the termination clause applicable?") {
         const terminationClauseStart = updatedHtml.indexOf('<h2 className="text-2xl font-bold mt-6">TERMINATION</h2>');
@@ -223,3 +246,6 @@ const Finish = () => {
 };
 
 export default Finish;
+
+
+// second latest cpde after currencies adding

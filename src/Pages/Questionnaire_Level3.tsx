@@ -3,22 +3,23 @@ import { FaChevronLeft, FaChevronRight, FaChevronDown } from "react-icons/fa";
 import { useState, useEffect, useContext, useCallback, useRef } from "react";
 import { useQuestionType } from "../context/QuestionTypeContext";
 import { useHighlightedText } from "../context/HighlightedTextContext";
-// import { determineQuestionType } from "../utils/questionTypeUtils";
 import { useQuestionEditContext, QuestionMaps } from "../context/QuestionEditContext.tsx";
 import { ThemeContext } from "../context/ThemeContext";
 import { useScore } from "../context/ScoreContext";
 import { useNavigate } from "react-router-dom";
-
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface DivWithDropdownProps {
   textValue: string;
   index: number;
   onTypeChange: (index: number, type: string) => void;
+  onTypeChanged: (index: number, changed: boolean) => void;
   onQuestionTextChange: (index: number, newText: string) => void;
   onRequiredChange: (index: number, required: boolean) => void;
   initialQuestionText: string;
   initialType: string;
   initialRequired: boolean;
+  initialTypeChanged: boolean;
   isFollowUp?: boolean;
 }
 
@@ -26,11 +27,13 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
   textValue,
   index,
   onTypeChange,
+  onTypeChanged,
   onQuestionTextChange,
   onRequiredChange,
   initialQuestionText,
   initialType,
   initialRequired = false,
+  initialTypeChanged = false,
   isFollowUp = false,
 }) => {
   const { isDarkMode } = useContext(ThemeContext);
@@ -38,7 +41,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
   const [selectedType, setSelectedType] = useState<string>(initialType || "Text");
   const [isOpen, setIsOpen] = useState(false);
   const [isRequired, setIsRequired] = useState(initialRequired);
-  const [typeChanged, setTypeChanged] = useState(false);
+  const [typeChanged, setTypeChanged] = useState(initialTypeChanged);
   const { findPlaceholderByValue, updateQuestion, determineQuestionType, questionMaps } = useQuestionEditContext();
   const { primaryValue } = determineQuestionType(textValue);
 
@@ -48,6 +51,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
     setSelectedType(type);
     onTypeChange(index, type);
     setTypeChanged(true);
+    onTypeChanged(index, true);
 
     let newQuestionText = questionText;
     if (questionText === primaryValue || questionText === "No text selected") {
@@ -105,7 +109,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
         <span className={`block h-1 w-full rounded-full ${isDarkMode ? "bg-teal-400" : "bg-teal-600"}`}></span>
       </button>
       <div
-        className={`relative w-full max-w-lg h-36 rounded-xl shadow-lg flex flex-col items-center justify-center text-lg font-semibold p-6 z-10 transform transition-all duration-300 hover:shadow-xl ${
+        className={`relative w-full mt-5 max-w-lg h-36 rounded-xl shadow-lg flex flex-col items-center justify-center text-lg font-semibold p-6 z-10 transform transition-all duration-300 hover:shadow-xl ${
           isDarkMode
             ? "bg-gradient-to-br from-gray-700 to-gray-800 text-teal-200"
             : "bg-gradient-to-br from-teal-100 to-cyan-100 text-teal-900"
@@ -206,11 +210,13 @@ const Questionnaire_Level3 = () => {
   const { highlightedTexts } = useHighlightedText();
   const { selectedTypes, setSelectedTypes, setEditedQuestions, requiredQuestions, setRequiredQuestions } = useQuestionType();
   const [uniqueQuestions, setUniqueQuestions] = useState<string[]>([]);
+  const [questionOrder, setQuestionOrder] = useState<number[]>([]);
   const [duplicateDetected] = useState<boolean>(false);
   const [questionTexts, setQuestionTexts] = useState<string[]>([]);
   const [scoredQuestions, setScoredQuestions] = useState<Record<number, { typeScored: boolean, requiredScored: boolean }>>({});
   const [bonusAwarded, setBonusAwarded] = useState(false);
   const [scoreFeedback, setScoreFeedback] = useState<{points: number, id: number} | null>(null);
+  const [typeChangedStates, setTypeChangedStates] = useState<boolean[]>([]);
   const feedbackId = useRef(0);
   const { questionMaps, updateQuestion, determineQuestionType, findPlaceholderByValue } = useQuestionEditContext();
   const navigate = useNavigate();
@@ -238,7 +244,7 @@ const Questionnaire_Level3 = () => {
       ...result,
       correctType: result.primaryType
     };
-  }, []);
+  }, [determineQuestionType]);
 
   const scoreTypeSelection = useCallback((index: number, selectedType: string) => {
     if (scoredQuestions[index]?.typeScored) return;
@@ -356,14 +362,55 @@ const Questionnaire_Level3 = () => {
       (text) => determineQuestionType(text).primaryValue || "No text selected"
     );
     console.log("initialtexts: ", initialTexts);
-    
-    const initialTypes = processedTexts.map(() => "Text");
 
+    // Load persisted question types from sessionStorage, default to "Text" if not found
+    const savedTypes = sessionStorage.getItem("selectedQuestionTypes");
+    let initialTypes: string[];
+    if (savedTypes) {
+      initialTypes = JSON.parse(savedTypes);
+      if (initialTypes.length !== processedTexts.length) {
+        initialTypes = processedTexts.map(() => "Text");
+      }
+    } else {
+      initialTypes = processedTexts.map(() => "Text");
+    }
+
+    // Load persisted typeChanged states from sessionStorage
+    const savedTypeChanged = sessionStorage.getItem("typeChangedStates");
+    let initialTypeChanged: boolean[];
+    if (savedTypeChanged) {
+      initialTypeChanged = JSON.parse(savedTypeChanged);
+      if (initialTypeChanged.length !== processedTexts.length) {
+        initialTypeChanged = processedTexts.map(() => false);
+      }
+    } else {
+      initialTypeChanged = processedTexts.map(() => false);
+    }
+
+    // Load persisted question order from sessionStorage
+    const savedOrder = sessionStorage.getItem("questionOrder");
+    let initialOrder: number[];
+    if (savedOrder) {
+      initialOrder = JSON.parse(savedOrder);
+      if (initialOrder.length !== processedTexts.length) {
+        initialOrder = processedTexts.map((_, index) => index);
+      }
+    } else {
+      initialOrder = processedTexts.map((_, index) => index);
+    }
+
+    setQuestionOrder(initialOrder);
     setQuestionTexts(initialTexts);
     setSelectedTypes(initialTypes);
     setEditedQuestions(initialTexts);
+    setTypeChangedStates(initialTypeChanged);
     setScoredQuestions({});
     setBonusAwarded(false);
+
+    // Save the initial types, typeChanged states, and question order to sessionStorage
+    sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(initialTypes));
+    sessionStorage.setItem("typeChangedStates", JSON.stringify(initialTypeChanged));
+    sessionStorage.setItem("questionOrder", JSON.stringify(initialOrder));
   }, [highlightedTexts, setSelectedTypes, setEditedQuestions, setRequiredQuestions, enhancedDetermineQuestionType]);
 
   useEffect(() => {
@@ -374,6 +421,7 @@ const Questionnaire_Level3 = () => {
     const newTypes = [...selectedTypes];
     newTypes[index] = type;
     setSelectedTypes(newTypes);
+    sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypes));
     scoreTypeSelection(index, type);
 
     const textValue = uniqueQuestions[index];
@@ -393,6 +441,13 @@ const Questionnaire_Level3 = () => {
       setQuestionTexts(newTexts);
       setEditedQuestions(newTexts);
     }
+  };
+
+  const handleTypeChanged = (index: number, changed: boolean) => {
+    const newTypeChangedStates = [...typeChangedStates];
+    newTypeChangedStates[index] = changed;
+    setTypeChangedStates(newTypeChangedStates);
+    sessionStorage.setItem("typeChangedStates", JSON.stringify(newTypeChangedStates));
   };
 
   const handleQuestionTextChange = (index: number, newText: string) => {
@@ -422,7 +477,6 @@ const Questionnaire_Level3 = () => {
         updateQuestion(typeKey as keyof QuestionMaps, placeholder, newText);
       }
       
-      
       console.log("question map: ", questionMaps);
     }
   };
@@ -432,6 +486,37 @@ const Questionnaire_Level3 = () => {
     newRequired[index] = required;
     setRequiredQuestions(newRequired);
     scoreRequiredStatus(index, required);
+  };
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const newOrder = [...questionOrder];
+    const [reorderedItem] = newOrder.splice(result.source.index, 1);
+    newOrder.splice(result.destination.index, 0, reorderedItem);
+
+    setQuestionOrder(newOrder);
+    sessionStorage.setItem("questionOrder", JSON.stringify(newOrder));
+
+    // Reorder related arrays based on the new question order
+    const newUniqueQuestions = newOrder.map(index => uniqueQuestions[index]);
+    const newQuestionTexts = newOrder.map(index => questionTexts[index]);
+    const newSelectedTypes = newOrder.map(index => selectedTypes[index]);
+    const newRequiredQuestions = newOrder.map(index => requiredQuestions[index]);
+    const newTypeChangedStates = newOrder.map(index => typeChangedStates[index]);
+    const newScoredQuestions = Object.fromEntries(
+      newOrder.map((originalIndex, newIndex) => [
+        newIndex,
+        scoredQuestions[originalIndex] || { typeScored: false, requiredScored: false }
+      ])
+    );
+
+    setUniqueQuestions(newUniqueQuestions);
+    setQuestionTexts(newQuestionTexts);
+    setSelectedTypes(newSelectedTypes);
+    setRequiredQuestions(newRequiredQuestions);
+    setTypeChangedStates(newTypeChangedStates);
+    setScoredQuestions(newScoredQuestions);
   };
 
   const storedLevel = sessionStorage.getItem("level") ?? "none";
@@ -558,19 +643,47 @@ const Questionnaire_Level3 = () => {
       <div className="flex-grow flex flex-col items-center justify-center pt-24 pb-12 px-6 overflow-y-auto">
         <div className="space-y-12 w-full max-w-4xl">
           {uniqueQuestions.length > 0 ? (
-            uniqueQuestions.map((text, index) => (
-              <DivWithDropdown
-                key={index}
-                textValue={text}
-                index={index}
-                onTypeChange={handleTypeChange}
-                onQuestionTextChange={handleQuestionTextChange}
-                onRequiredChange={handleRequiredChange}
-                initialQuestionText={questionTexts[index] || "No text selected"}
-                initialType={"Text"}
-                initialRequired={false}
-              />
-            ))
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="questions">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {questionOrder.map((originalIndex, displayIndex) => {
+                      const text = uniqueQuestions[originalIndex];
+                      const { primaryValue } = enhancedDetermineQuestionType(text);
+                      return (
+                        <Draggable
+                          key={primaryValue || `question-${originalIndex}`}
+                          draggableId={primaryValue || `question-${originalIndex}`}
+                          index={displayIndex}
+                        >
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              <DivWithDropdown
+                                textValue={text}
+                                index={originalIndex}
+                                onTypeChange={handleTypeChange}
+                                onTypeChanged={handleTypeChanged}
+                                onQuestionTextChange={handleQuestionTextChange}
+                                onRequiredChange={handleRequiredChange}
+                                initialQuestionText={questionTexts[originalIndex] || "No text selected"}
+                                initialType={selectedTypes[originalIndex] || "Text"}
+                                initialRequired={requiredQuestions[originalIndex] || false}
+                                initialTypeChanged={typeChangedStates[originalIndex] || false}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      );
+                    })}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           ) : (
             <div
               className={`text-center py-12 rounded-xl shadow-lg border ${
