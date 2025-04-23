@@ -12,7 +12,7 @@ const Live_Generation_2 = () => {
   const { isDarkMode } = useContext(ThemeContext);
   const navigate = useNavigate();
   const { highlightedTexts: originalHighlightedTexts } = useHighlightedText();
-  const { selectedTypes: originalSelectedTypes, setSelectedTypes, editedQuestions: originalEditedQuestions, setEditedQuestions, requiredQuestions: originalRequiredQuestions } = useQuestionType();
+  const { selectedTypes: originalSelectedTypes, editedQuestions: originalEditedQuestions, requiredQuestions: originalRequiredQuestions } = useQuestionType();
   const { determineQuestionType, findPlaceholderByValue } = useQuestionEditContext();
   const [agreement, setAgreement] = useState<string>(documentText);
   const [inputErrors, setInputErrors] = useState<{ [key: string]: string }>({});
@@ -126,7 +126,7 @@ const Live_Generation_2 = () => {
               calculatedValue = numericAnswer * operationValue;
               break;
             case "divide":
-              calculatedValue = operationValue !== 0 ? numericAnswer / operationValue : "Error";
+              calculatedValue = operationValue !== 0 ? numericAnswer / operationValue : null;
               break;
             default:
               calculatedValue = null;
