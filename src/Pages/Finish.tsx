@@ -14,7 +14,7 @@ interface UserAnswers {
 const processAgreement = (html: string, answers: UserAnswers) => {
   let updatedHtml = html;
 
-  // Debug log to check answers
+  console.log("Initial html in processAgreement:", html); // Debug log
   console.log("userAnswers in processAgreement:", answers);
 
   updatedHtml = updatedHtml.replace(
@@ -28,15 +28,15 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     }
   );
 
-  // Handle [USA] replacement first
+  // Handle [USA] replacement for governing country
   const countryAnswer = answers["What is the governing country?"];
-  console.log("countryAnswer for [USA]:", countryAnswer); // Debug log
+  console.log("countryAnswer for [USA]:", countryAnswer);
   if (countryAnswer && typeof countryAnswer === "string" && countryAnswer.trim()) {
     updatedHtml = updatedHtml.replace(
       new RegExp(`\\[USA\\]`, "gi"),
       countryAnswer
     );
-    console.log("After [USA] replacement:", updatedHtml); // Debug log
+    console.log("After [USA] replacement:", updatedHtml);
   }
 
   // Handle Probationary Period clause
@@ -57,7 +57,7 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     );
   }
 
-  // Process other placeholders, skipping [USA] to avoid override
+  // Process other placeholders
   Object.entries(answers).forEach(([question, answer]) => {
     // Skip [USA] since we already handled it
     if (question === "What is the governing country?") {
@@ -65,24 +65,29 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     }
 
     const placeholder = findPlaceholderByValue(question);
-    // Handles calculations
-    if (placeholder === "Unused Holiday Days" && typeof(answer) === "string") {
+    // Handle calculations
+    if (placeholder === "Unused Holiday Days" && typeof answer === "string") {
       const calculatedValue = localStorage.getItem("calculatedValue") || "";
       updatedHtml = updatedHtml.replace(
         new RegExp("\\[Holiday Pay\\]", "gi"),
-        calculatedValue);
+        calculatedValue
+      );
     }
     if (placeholder) {
       const escapedPlaceholder = placeholder.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&");
-      if (question === "What's the annual salary?") {
+      if (question === "What's the annual salary?" || question === "Specify the holiday pay?") {
         const salaryData = answer as { amount: string; currency: string } | undefined;
+        const formattedAmount = salaryData?.amount || `[${placeholder}]`;
+        const formattedCurrency = salaryData?.currency || "USD"; // Default to USD if no currency is selected
+        // Replace [Annual Salary] with the amount
         updatedHtml = updatedHtml.replace(
           new RegExp(`\\[${escapedPlaceholder}\\]`, "gi"),
-          salaryData?.amount || "[Annual Salary]"
+          formattedAmount
         );
+        // Replace [USD] with the selected currency
         updatedHtml = updatedHtml.replace(
           new RegExp(`\\[USD\\]`, "gi"),
-          salaryData?.currency || "[USD]"
+          formattedCurrency
         );
       } else if (typeof answer === "boolean") {
         if (!answer) {
@@ -114,7 +119,7 @@ const processAgreement = (html: string, answers: UserAnswers) => {
       }
     } else {
       if (question === "Is the sick pay policy applicable?") {
-        const sickPayClause = "The Employee may also be entitled to Company sick pay of [Details of Company Sick Pay Policy]";
+        const sickPayClause = "{The Employee may also be entitled to Company sick pay of [Details of Company Sick Pay Policy]}";
         if (answer === false) {
           updatedHtml = updatedHtml.replace(sickPayClause, "");
         } else if (answer === true && answers["What's the sick pay policy?"]) {
@@ -147,8 +152,7 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     }
   });
 
-  // Final debug log to check the HTML
-  console.log("Final updatedHtml:", updatedHtml);
+  console.log("Final updatedHtml:", updatedHtml); // Debug log
   return updatedHtml;
 };
 

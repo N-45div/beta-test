@@ -5,12 +5,14 @@ import { useState, useContext, useRef, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { useHighlightedText } from "../context/HighlightedTextContext";
 import { useQuestionType } from "../context/QuestionTypeContext";
-import EmploymentAgreement from "../utils/EmploymentAgreement";
+import EmploymentAgreement from "../utils/EmploymentAgreement"; // Ensure this file exports a React component or valid JSX
 import { determineQuestionType } from "../utils/questionTypeUtils";
 import { ThemeContext } from "../context/ThemeContext";
 import AIAnalysisPanel from "../components/AIAnalysisPanel";
 import { useLocation } from "react-router";
 import { CrispChat } from "../bot/knowledge";
+import { useScore } from "../context/ScoreContext";
+
 const icons = [
   { icon: <FaPenToSquare />, label: "Edit PlaceHolder" },
   { icon: <TbSettingsMinus />, label: "Small Condition" },
@@ -25,6 +27,18 @@ const LevelTwoPart_Two = () => {
   const { highlightedTexts, addHighlightedText } = useHighlightedText();
   const { selectedTypes } = useQuestionType();
   const documentRef = useRef<HTMLDivElement>(null);
+
+  // Scoring system
+  const { setLevelTwoScore } = useScore();
+  const [score, setScore] = useState<number>(0);
+  const [scoreChange, setScoreChange] = useState<number | null>(null);
+  const [foundPlaceholders, setFoundPlaceholders] = useState<string[]>([]);
+  const [foundSmallConditions, setFoundSmallConditions] = useState<string[]>([]);
+  const [foundBigConditions, setFoundBigConditions] = useState<string[]>([]);
+
+  useEffect(() => {
+    setLevelTwoScore(score);
+  }, [score, setLevelTwoScore]);
 
   useEffect(() => {
     console.log("LevelTwoPart_Two - Rendering at:", location.pathname);
@@ -62,6 +76,41 @@ const LevelTwoPart_Two = () => {
       return;
     }
 
+    // Scoring validation
+    const isCorrectButton =
+      (label === "Edit PlaceHolder" && hasValidBrackets) ||
+      (label === "Small Condition" && hasValidBrackets) ||
+      (label === "Big Condition" && hasValidBrackets);
+
+    // Handle scoring
+    if (isCorrectButton) {
+      if (label === "Edit PlaceHolder" && !foundPlaceholders.includes(textWithoutBrackets)) {
+        setScore((prevScore) => prevScore + 3);
+        setScoreChange(3);
+        setTimeout(() => setScoreChange(null), 2000);
+        setFoundPlaceholders((prev) => [...prev, textWithoutBrackets]);
+      } else if (label === "Small Condition" && !foundSmallConditions.includes(textWithoutBrackets)) {
+        setScore((prevScore) => prevScore + 3);
+        setScoreChange(3);
+        setTimeout(() => setScoreChange(null), 2000);
+        setFoundSmallConditions((prev) => [...prev, textWithoutBrackets]);
+      } else if (label === "Big Condition" && !foundBigConditions.includes(textWithoutBrackets)) {
+        setScore((prevScore) => prevScore + 3);
+        setScoreChange(3);
+        setTimeout(() => setScoreChange(null), 2000);
+        setFoundBigConditions((prev) => [...prev, textWithoutBrackets]);
+      }
+    } else {
+      // Wrong button clicked - deduct 2 points
+      const newScore = Math.max(0, score - 2);
+      setScore(newScore);
+      if (score > 0) {
+        setScoreChange(-2);
+        setTimeout(() => setScoreChange(null), 2000);
+      }
+      return;
+    }
+
     if (label === "Edit PlaceHolder") {
       if (!(selectedText.startsWith("[") && selectedText.endsWith("]"))) {
         console.log("Invalid Edit Placeholder selection:", selectedText);
@@ -74,7 +123,6 @@ const LevelTwoPart_Two = () => {
       }
       console.log("Selected Edit Placeholder:", textWithoutBrackets);
       addHighlightedText(textWithoutBrackets);
-      console.log("Updated highlightedTexts after adding:", highlightedTexts);
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(255, 245, 157, 0.5)" : "rgba(255, 245, 157, 0.7)";
       span.textContent = selectedText;
@@ -108,12 +156,12 @@ const LevelTwoPart_Two = () => {
 
       const fragment = document.createDocumentFragment();
       const contents = range.cloneContents();
-      
+
       const applyHighlight = (node: Node) => {
         if (node.nodeType === Node.TEXT_NODE) {
           const span = document.createElement("span");
           span.style.backgroundColor = isDarkMode ? "rgba(186, 220, 88, 0.5)" : "rgba(186, 220, 88, 0.7)";
-          span.textContent = node.textContent;
+          span.textContent = node.textContent || "";
           return span;
         } else if (node.nodeType === Node.ELEMENT_NODE) {
           const element = node as HTMLElement;
@@ -123,9 +171,7 @@ const LevelTwoPart_Two = () => {
           }
           element.childNodes.forEach((child) => {
             const newChild = applyHighlight(child);
-            if (newChild) {
-              newElement.appendChild(newChild);
-            }
+            if (newChild) newElement.appendChild(newChild);
           });
           return newElement;
         }
@@ -134,9 +180,7 @@ const LevelTwoPart_Two = () => {
 
       contents.childNodes.forEach((node) => {
         const newNode = applyHighlight(node);
-        if (newNode) {
-          fragment.appendChild(newNode);
-        }
+        if (newNode) fragment.appendChild(newNode);
       });
 
       range.deleteContents();
@@ -149,9 +193,6 @@ const LevelTwoPart_Two = () => {
       const normalizedSelectedText = normalizeText(textWithoutBrackets);
       const normalizedProbationClause = normalizeText(probationClauseContent);
       const normalizedPensionClause = normalizeText(pensionClauseContent);
-
-      console.log("Normalized selectedText:", normalizedSelectedText);
-      console.log("Normalized probationClause:", normalizedProbationClause);
 
       if (normalizedSelectedText === normalizedProbationClause) {
         console.log("Probation Clause matched, adding question instead of placeholder");
@@ -185,6 +226,25 @@ const LevelTwoPart_Two = () => {
         questionnaire={"/Questionnaire"}
         live_generation={"/Live_Generation"}
       />
+      {/* Score display */}
+      <div className="fixed top-16 left-6 z-50 px-6 py-3">
+        <div
+          className={`p-3 rounded-full shadow-lg flex items-center ${
+            isDarkMode ? "bg-gray-700 text-white" : "bg-teal-500 text-white"
+          }`}
+        >
+          <span className="font-bold mr-2">Score:</span> {score}
+          {scoreChange !== null && (
+            <span
+              className={`ml-2 text-sm font-bold ${
+                scoreChange > 0 ? "text-green-400" : "text-red-400"
+              }`}
+            >
+              {scoreChange > 0 ? `+${scoreChange}` : scoreChange}
+            </span>
+          )}
+        </div>
+      </div>
       <div className="fixed flex top-16 right-0 z-50 px-6 py-3 space-x-6">
         {icons.map(({ icon, label }, index) => (
           <div key={index} className="relative flex items-center">
@@ -239,26 +299,15 @@ const LevelTwoPart_Two = () => {
           >
             {[...new Set(highlightedTexts)].map((text, index) => {
               const { primaryValue } = determineQuestionType(text);
-              const questionType = selectedTypes[index] || "Text";
+              const questionType = selectedTypes[index] || "Text"; // Default to "Text" if undefined
               return (
-                <li
-                  id={`selected-placeholder${index}`}
-                  key={`${text}-${index}`}
-                  className={`flex items-center justify-between p-4 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-1 ${
-                    isDarkMode
-                      ? "text-teal-200 bg-gray-600/80 hover:bg-gray-500/70"
-                      : "text-teal-800 bg-white/80 hover:bg-teal-100/70"
-                  }`}
-                >
-                  <div className="flex items-center">
+                <li key={index} className="flex items-center justify-between">
+                  <div>
                     <span
-                      className={`mr-3 text-lg ${
-                        isDarkMode ? "text-cyan-400" : "text-cyan-500"
+                      className={`text-sm font-medium truncate max-w-xs ${
+                        isDarkMode ? "text-teal-200" : "text-teal-900"
                       }`}
                     >
-                      ✓
-                    </span>
-                    <span className="text-sm font-medium truncate max-w-xs">
                       {primaryValue || text}
                     </span>
                   </div>
@@ -321,7 +370,7 @@ const LevelTwoPart_Two = () => {
           highlightedTexts={highlightedTexts}
           isDarkMode={isDarkMode}
         />
-        <CrispChat websiteId="cf9c462c-73de-461e-badf-ab3a1133bdde"/>
+        <CrispChat websiteId="cf9c462c-73de-461e-badf-ab3a1133bdde" />
       </div>
     </div>
   );
