@@ -3,67 +3,148 @@ import { useNavigate, useLocation } from "react-router";
 import { FaTools, FaSun, FaMoon } from "react-icons/fa";
 import { ThemeContext } from "../context/ThemeContext";
 
+// Define the props interface
 interface NavbarProps {
-  level: string;
-  questionnaire: string;
-  live_generation: string;
+  level?: string;
+  questionnaire?: string;
+  live_generation?: string;
   calculations?: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, calculations }) => {
+const Navbar = ({ level, questionnaire, live_generation, calculations }: NavbarProps) => {
   const { isDarkMode, toggleDarkMode } = useContext(ThemeContext);
   const location = useLocation();
   const navigation = useNavigate();
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<string | null>(null);
+  const [currentLevel, setCurrentLevel] = useState<number>(() => {
+    // Initialize level from sessionStorage if available
+    const storedLevel = sessionStorage.getItem('currentLevel');
+    return storedLevel ? parseInt(storedLevel) : 2; // Default to Level 2
+  });
 
+  // Determine current level from URL and set up proper routes
   useEffect(() => {
-    console.log("Navbar - Current pathname:", location.pathname);
-    console.log("Navbar - Props:", { level, questionnaire, live_generation, calculations });
-    console.log("Navbar - sessionStorage level:", sessionStorage.getItem("level"));
-
-    const pathname = location.pathname;
-    if (pathname === level) {
-      setActiveButton("Document");
-    } else if (pathname === questionnaire) {
-      setActiveButton("Questionnaire");
-    } else if (pathname === live_generation) {
-      setActiveButton("Live Document Generation");
-    } else if (pathname === "/Finish") {
-      setActiveButton("Generated Document");
-    } else if (pathname === calculations) {
-      setActiveButton("Calculations");
-    } else {
-      setActiveButton(null);
+    // Check if current path indicates Level 3
+    if (location.pathname.includes("Level-Three") || 
+        location.pathname.includes("Questionnaire_Level3") ||
+        location.pathname === "/Calculations") {
+      
+      // If we're in a Level 3 specific page, update and persist the level
+      if (currentLevel !== 3) {
+        setCurrentLevel(3);
+        sessionStorage.setItem('currentLevel', '3');
+        console.log("Level set to 3 and persisted");
+      }
+    } 
+    // Check if current path indicates Level 2
+    else if (location.pathname.includes("Level-Two") || 
+             (location.pathname === "/Questionnaire" && !location.pathname.includes("Level3"))) {
+      
+      // If we're in a Level 2 specific page, update and persist the level
+      if (currentLevel !== 2) {
+        setCurrentLevel(2);
+        sessionStorage.setItem('currentLevel', '2');
+        console.log("Level set to 2 and persisted");
+      }
     }
-  }, [location.pathname, level, questionnaire, live_generation, calculations]);
+    // If on a shared path like Live_Generation, keep the existing level
 
-  const handlePageChange = (label: string) => {
-    const routes: Record<string, string | null | undefined> = {
-      Document: level,
-      Questionnaire: questionnaire,
-      "Live Document Generation": live_generation,
-      "Generated Document": "/Finish",
-      Calculations: calculations,
+    // Define routes based on the current location
+    const routes: Record<string, string> = {
+      // Common path
+      "/Finish": "Generated Document",
+      
+      // Level 2 paths
+      "/Level-Two-Part-Two": "Document",
+      "/Questionnaire": "Questionnaire",
+      
+      // Level 3 paths
+      "/Level-Three-Quiz": "Document",
+      "/Questionnaire_Level3": "Questionnaire",
+      "/Calculations": "Calculations",
+      "/Live_Generation_2": "Live Document Generation",
+      
+      // Add custom routes from props if provided
+      ...(level && { [level]: "Document" }),
+      ...(questionnaire && { [questionnaire]: "Questionnaire" }),
+      ...(live_generation && { [live_generation]: "Live Document Generation" }),
+      ...(calculations && { [calculations]: "Calculations" }),
     };
 
-    const path = routes[label];
-    console.log(`Navbar - Navigating to ${label}:`, path, "Current pathname:", location.pathname);
+    const activeLabel = routes[location.pathname] || null;
+    console.log("Current pathname:", location.pathname, 
+                "Active label:", activeLabel, 
+                "Current level:", currentLevel);
+    setActiveButton(activeLabel);
+  }, [location.pathname, level, questionnaire, live_generation, calculations, currentLevel]);
 
-    if (path && path !== location.pathname) {
-      navigation(path);
-    } else if (path === location.pathname) {
-      console.log(`Navbar - Already on ${path}, skipping navigation`);
+  const handlePageChange = (label: string) => {
+    const storedLevel = parseInt(sessionStorage.getItem('currentLevel') || '2');
+    console.log("current level: ", storedLevel);
+    // Define level-specific routes based on the persisted level
+    let targetPath;
+    
+    if (storedLevel === 3) {
+      // Level 3 routes
+      switch (label) {
+        case "Document":
+          targetPath = "/Level-Three-Quiz";
+          break;
+        case "Questionnaire":
+          targetPath = "/Questionnaire_Level3";
+          break;
+        case "Live Document Generation":
+          targetPath = "/Live_Generation_2";
+          break;
+        case "Generated Document":
+          targetPath = "/Finish";
+          break;
+        case "Calculations":
+          targetPath = "/Calculations";
+          break;
+        default:
+          targetPath = null;
+      }
     } else {
-      console.warn(`Navbar - No valid route for ${label}`);
+      // Level 2 routes
+      switch (label) {
+        case "Document":
+          targetPath = "/Level-Two-Part-Two";
+          break;
+        case "Questionnaire":
+          targetPath = "/Questionnaire";
+          break;
+        case "Live Document Generation":
+          targetPath = "/Live_Generation_2";
+          break;
+        case "Generated Document":
+          targetPath = "/Finish";
+          break;
+        default:
+          targetPath = null;
+      }
+    }
+    
+    // Override with custom paths from props if provided
+    if (label === "Document" && level) targetPath = level;
+    if (label === "Questionnaire" && questionnaire && currentLevel === 2) targetPath = questionnaire;
+    if (label === "Live Document Generation" && live_generation) targetPath = live_generation;
+    if (label === "Calculations" && calculations) targetPath = calculations;
+    
+    console.log(`Navigating to: ${targetPath}, Label: ${label}, Current level: ${storedLevel}`);
+    if (targetPath) {
+      navigation(targetPath);
     }
   };
 
-  const pages = ["Document", "Questionnaire"];
-  if (typeof calculations !== "undefined") {
-    pages.push("Calculations");
-  }
-  pages.push("Live Document Generation");
+  // Determine which nav buttons to show based on level
+  const getNavButtons = () => {
+    const baseButtons = ["Document", "Questionnaire", "Live Document Generation"];
+    
+    // Only show Calculations button in Level 3
+    return currentLevel === 3 ? [...baseButtons, "Calculations"] : baseButtons;
+  };
 
   return (
     <div
@@ -75,8 +156,19 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
         <div className="flex items-center justify-between">
           <div className="flex-1 flex">
             {location.pathname !== "/Finish" ? (
-              pages.map((label) => (
+              getNavButtons().map((label, idx) => (
                 <button
+                  id={
+                    idx === 1
+                      ? "Questionnaire-button"
+                      : idx === 2
+                      ? "live-document-generation"
+                      : idx === 0
+                      ? "document-page"
+                      : idx === 3
+                      ? "calculations-page"
+                      : undefined
+                  }
                   key={label}
                   className={`px-8 py-3 cursor-pointer font-medium border-r border-lime-400 transition-colors duration-200 flex items-center space-x-2 ${
                     activeButton === label
@@ -93,7 +185,7 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
                 </button>
               ))
             ) : (
-              <div className="flex-1 flex justify-end pr-75">
+              <div className="flex-1 flex justify-end pr-4">
                 <span
                   className={`px-8 py-3 font-medium flex items-center space-x-2 text-xl ${
                     isDarkMode ? "text-teal-300" : "text-blue-600"
@@ -134,7 +226,7 @@ const Navbar: React.FC<NavbarProps> = ({ level, questionnaire, live_generation, 
             </div>
             <button
               onClick={toggleDarkMode}
-              className={`p-2 relative left-[12vw] rounded-full shadow-md transition-all duration-300 transform hover:scale-110 ${
+              className={`p-2 relative left-12 rounded-full shadow-md transition-all duration-300 transform hover:scale-110 ${
                 isDarkMode
                   ? "bg-gray-600 text-yellow-400 hover:bg-gray-100"
                   : "bg-lime-900 text-white hover:bg-black"

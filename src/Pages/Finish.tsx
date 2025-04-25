@@ -8,11 +8,14 @@ import { findPlaceholderByValue } from "../utils/questionTypeUtils";
 import { ThemeContext } from "../context/ThemeContext";
 
 interface UserAnswers {
-  [key: string]: string | boolean;
+  [key: string]: string | boolean | null | { amount: string; currency: string };
 }
 
 const processAgreement = (html: string, answers: UserAnswers) => {
   let updatedHtml = html;
+
+  console.log("Initial html in processAgreement:", html); // Debug log
+  console.log("userAnswers in processAgreement:", answers);
 
   updatedHtml = updatedHtml.replace(
     /<h2 className="([^"]*)"/g,
@@ -25,20 +28,86 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     }
   );
 
+  // Handle [USA] replacement for governing country
+  const countryAnswer = answers["What is the governing country?"];
+  console.log("countryAnswer for [USA]:", countryAnswer);
+  if (countryAnswer && typeof countryAnswer === "string" && countryAnswer.trim()) {
+    updatedHtml = updatedHtml.replace(
+      new RegExp(`\\[USA\\]`, "gi"),
+      countryAnswer
+    );
+    console.log("After [USA] replacement:", updatedHtml);
+  }
+
+  // Handle Probationary Period clause
+  const probationAnswer = answers["Is the clause of probationary period applicable?"];
+  if (probationAnswer === null || probationAnswer === false) {
+    updatedHtml = updatedHtml.replace(
+      /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+      ""
+    );
+  }
+
+  // Handle Pension clause
+  const pensionAnswer = answers["Is the Pension clause applicable?"];
+  if (pensionAnswer === null || pensionAnswer === false) {
+    updatedHtml = updatedHtml.replace(
+      /<h2[^>]*>[^<]*PENSION[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+      ""
+    );
+  }
+
+  // Handle Additional Locations clause
+  const additionalLocationsAnswer = answers["Does the employee need to work at additional locations besides the normal place of work?"];
+  const additionalLocationDetails = answers["What is the additional work location?"] as string | undefined;
+  if (additionalLocationsAnswer === true && additionalLocationDetails && typeof additionalLocationDetails === "string" && additionalLocationDetails.trim()) {
+    // Replace or append the additional location details
+    updatedHtml = updatedHtml.replace(
+      /\[other locations\]/gi,
+      additionalLocationDetails
+    );
+  } else if (additionalLocationsAnswer === false || additionalLocationsAnswer === null) {
+    // Remove the clause if not applicable
+    updatedHtml = updatedHtml.replace(
+      /<h2[^>]*>[^<]*ADDITIONAL WORK LOCATIONS[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?\[other locations\][\s\S]*?<\/p>/i,
+      ""
+    );
+  }
+
+  // Process other placeholders
   Object.entries(answers).forEach(([question, answer]) => {
+    // Skip [USA] since we already handled it
+    if (question === "What is the governing country?") {
+      return;
+    }
+
     const placeholder = findPlaceholderByValue(question);
-    // Handles calculations
-    if (placeholder === "Unused Holiday Days" && typeof(answer) === "string") {
+    // Handle calculations
+    if (placeholder === "Unused Holiday Days" && typeof answer === "string") {
       const calculatedValue = localStorage.getItem("calculatedValue") || "";
       updatedHtml = updatedHtml.replace(
         new RegExp("\\[Holiday Pay\\]", "gi"),
-        calculatedValue);
+        calculatedValue
+      );
     }
     if (placeholder) {
       const escapedPlaceholder = placeholder.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&");
-      if (typeof answer === "boolean") {
+      if (question === "What's the annual salary?" || question === "Specify the holiday pay?") {
+        const salaryData = answer as { amount: string; currency: string } | undefined;
+        const formattedAmount = salaryData?.amount || `[${placeholder}]`;
+        const formattedCurrency = salaryData?.currency || "USD"; // Default to USD if no currency is selected
+        // Replace [Annual Salary] with the amount
+        updatedHtml = updatedHtml.replace(
+          new RegExp(`\\[${escapedPlaceholder}\\]`, "gi"),
+          formattedAmount
+        );
+        // Replace [USD] with the selected currency
+        updatedHtml = updatedHtml.replace(
+          new RegExp(`\\[USD\\]`, "gi"),
+          formattedCurrency
+        );
+      } else if (typeof answer === "boolean") {
         if (!answer) {
-          // handles probation clause
           if (question === "Is the clause of probationary period applicable?") {
             if (answer === false) {
               updatedHtml = updatedHtml.replace(
@@ -47,7 +116,6 @@ const processAgreement = (html: string, answers: UserAnswers) => {
               );
             }
           }
-
           updatedHtml = updatedHtml.replace(new RegExp(`.*${escapedPlaceholder}.*`, "gi"), "");
         } else {
           updatedHtml = updatedHtml.replace(
@@ -68,7 +136,7 @@ const processAgreement = (html: string, answers: UserAnswers) => {
       }
     } else {
       if (question === "Is the sick pay policy applicable?") {
-        const sickPayClause = "The Employee may also be entitled to Company sick pay of [Details of Company Sick Pay Policy]";
+        const sickPayClause = "{The Employee may also be entitled to Company sick pay of [Details of Company Sick Pay Policy]}";
         if (answer === false) {
           updatedHtml = updatedHtml.replace(sickPayClause, "");
         } else if (answer === true && answers["What's the sick pay policy?"]) {
@@ -76,12 +144,6 @@ const processAgreement = (html: string, answers: UserAnswers) => {
             "[Details of Company Sick Pay Policy]",
             answers["What's the sick pay policy?"] as string
           );
-        }
-      } else if (question === "Is the clause of probationary period applicable?" && answer === false) {
-        const probationClauseStart = updatedHtml.indexOf('<h2 className="text-2xl font-bold mt-6">PROBATIONARY PERIOD</h2>');
-        const probationClauseEnd = updatedHtml.indexOf('<h2 className="text-2xl font-bold mt-6">JOB TITLE AND DUTIES</h2>');
-        if (probationClauseStart !== -1 && probationClauseEnd !== -1) {
-          updatedHtml = updatedHtml.slice(0, probationClauseStart) + updatedHtml.slice(probationClauseEnd);
         }
       } else if (question === "Is the termination clause applicable?") {
         const terminationClauseStart = updatedHtml.indexOf('<h2 className="text-2xl font-bold mt-6">TERMINATION</h2>');
@@ -107,6 +169,7 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     }
   });
 
+  console.log("Final updatedHtml:", updatedHtml); // Debug log
   return updatedHtml;
 };
 
@@ -133,6 +196,7 @@ const Finish = () => {
     window.addEventListener("resize", updateDimensions);
     setConfetti(true);
     const answers: UserAnswers = location.state?.userAnswers || {};
+    console.log("userAnswers in Finish useEffect:", answers); // Debug log
     const updatedText = processAgreement(documentText, answers);
     setFinalAgreement(parse(updatedText));
 

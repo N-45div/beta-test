@@ -35,201 +35,204 @@ const Level3_Quiz = () => {
   const [foundLoops, setFoundLoops] = useState<string[]>([]);
   const [foundCalculations, setFoundCalculations] = useState<string[]>([]);
 
-  const handleIconClick = (label: string) => {
-    const selection = window.getSelection();
-    if (!selection || !selection.rangeCount) return;
+  // In Level3_Quiz.tsx, inside handleIconClick function
+const handleIconClick = (label: string) => {
+  const selection = window.getSelection();
+  if (!selection || !selection.rangeCount) return;
 
-    const range = selection.getRangeAt(0);
-    const selectedText = range.toString();
+  const range = selection.getRangeAt(0);
+  const selectedText = range.toString();
 
-    let textWithoutBrackets = selectedText;
-    let hasValidBrackets = false;
-    let isSmallCondition = false;
-    let isBigCondition = false;
-    let isLoop = false;
-    let isCalculation = false;
+  let textWithoutBrackets = selectedText;
+  let hasValidBrackets = false;
+  let isSmallCondition = false;
+  let isLoop = false;
+  let isBigCondition = false;
+  let isCalculation = false;
 
-    // Check for square brackets (placeholders)
-    if (selectedText.startsWith("[") && selectedText.endsWith("]")) {
-      textWithoutBrackets = selectedText.slice(1, -1);
-      hasValidBrackets = true;
-    }
-    // Check for curly braces (small conditions)
-    else if (selectedText.startsWith("{") && selectedText.endsWith("}")) {
-      textWithoutBrackets = selectedText.slice(1, -1);
-      isSmallCondition = true;
-    }
-    // Check for parentheses (big conditions)
-    else if (selectedText.startsWith("(") && selectedText.endsWith(")")) {
-      textWithoutBrackets = selectedText.slice(1, -1);
-      isBigCondition = true;
-    }
-    // Check for slashes (loops)
-    else if (selectedText.startsWith("/") && selectedText.endsWith("/")) {
-      textWithoutBrackets = selectedText.slice(1, -1);
-      isLoop = true;
-    }
-    // Check for calculations
-    else if (selectedText === "[Unused Holiday Days]") {
-      textWithoutBrackets = selectedText.slice(1, -1);
-      isCalculation = true;
-    } else {
-      console.log("Selected text does not have valid brackets:", selectedText);
-      return;
-    }
+  // Check for square brackets (placeholders)
+  if (selectedText.startsWith("[") && selectedText.endsWith("]")) {
+    textWithoutBrackets = selectedText.slice(1, -1);
+    hasValidBrackets = true;
+  }
+  // Check for curly braces (small conditions)
+  else if (selectedText.startsWith("{") && selectedText.endsWith("}")) {
+    textWithoutBrackets = selectedText.slice(1, -1);
+    isSmallCondition = true;
+  }
+  // Check for slashes (loops)
+  else if (selectedText.startsWith("/") && selectedText.endsWith("/")) {
+    textWithoutBrackets = selectedText.slice(1, -1);
+    isLoop = true;
+  }
+  // Check for parentheses (big conditions)
+  else if (selectedText.startsWith("(") && selectedText.endsWith(")")) {
+    textWithoutBrackets = selectedText.slice(1, -1);
+    isBigCondition = true;
+  }
+  // Check for calculations
+  else if (selectedText === "[Unused Holiday Days]") {
+    textWithoutBrackets = selectedText.slice(1, -1);
+    isCalculation = true;
+  } else {
+    console.log("Selected text does not have valid brackets:", selectedText);
+    return;
+  }
 
-    // Check if the clicked button matches the text type
-    const isCorrectButton =
-      (label === "Edit PlaceHolder" && hasValidBrackets && !isSmallCondition && !isBigCondition && !isLoop && !isCalculation) ||
-      (label === "Small Condition" && isSmallCondition) ||
-      (label === "Big Condition" && isBigCondition) ||
-      (label === "Loop" && isLoop) ||
-      (label === "Calculations" && isCalculation);
+  // Check if the clicked button matches the text type
+  const isCorrectButton =
+    (label === "Edit PlaceHolder" && hasValidBrackets && !isSmallCondition && !isLoop && !isBigCondition && !isCalculation) ||
+    (label === "Small Condition" && isSmallCondition) ||
+    (label === "Loop" && isLoop) ||
+    (label === "Big Condition" && isBigCondition) ||
+    (label === "Calculations" && isCalculation);
 
-    // Handle scoring
-    if (isCorrectButton) {
-      // Correct button clicked
-      if (label === "Edit PlaceHolder" && !foundPlaceholders.includes(textWithoutBrackets)) {
-        updateScore(3);
-        setScoreChange(3);
-        setTimeout(() => setScoreChange(null), 2000);
-        setFoundPlaceholders(prev => [...prev, textWithoutBrackets]);
-      }
-      else if (label === "Small Condition" && !foundSmallConditions.includes(textWithoutBrackets)) {
-        updateScore(3);
-        setScoreChange(3);
-        setTimeout(() => setScoreChange(null), 2000);
-        setFoundSmallConditions(prev => [...prev, textWithoutBrackets]);
-      }
-      else if (label === "Big Condition" && !foundBigConditions.includes(textWithoutBrackets)) {
-        updateScore(3);
-        setScoreChange(3);
-        setTimeout(() => setScoreChange(null), 2000);
-        setFoundBigConditions(prev => [...prev, textWithoutBrackets]);
-      }
-      else if (label === "Loop" && !foundLoops.includes(textWithoutBrackets)) {
-        updateScore(3);
-        setScoreChange(3);
-        setTimeout(() => setScoreChange(null), 2000);
-        setFoundLoops(prev => [...prev, textWithoutBrackets]);
-      }
-      else if (label === "Calculations" && !foundCalculations.includes(textWithoutBrackets)) {
-        updateScore(3);
-        setScoreChange(3);
-        setTimeout(() => setScoreChange(null), 2000);
-        setFoundCalculations(prev => [...prev, textWithoutBrackets]);
-      }
-    } else {
-      // Wrong button clicked - deduct 2 points
-      updateScore(-2);
-      // Only show -2 animation if score was above 0 before deduction
-      if (totalScore > 0) {
-        setScoreChange(-2);
-        setTimeout(() => setScoreChange(null), 2000);
-      }
-      return;
+  // Handle scoring
+  if (isCorrectButton) {
+    if (label === "Edit PlaceHolder" && !foundPlaceholders.includes(textWithoutBrackets)) {
+      updateScore(3);
+      setScoreChange(3);
+      setTimeout(() => setScoreChange(null), 2000);
+      setFoundPlaceholders((prev) => [...prev, textWithoutBrackets]);
+    } else if (label === "Small Condition" && !foundSmallConditions.includes(textWithoutBrackets)) {
+      updateScore(3);
+      setScoreChange(3);
+      setTimeout(() => setScoreChange(null), 2000);
+      setFoundSmallConditions((prev) => [...prev, textWithoutBrackets]);
+    } else if (label === "Loop" && !foundLoops.includes(textWithoutBrackets)) {
+      updateScore(3);
+      setScoreChange(3);
+      setTimeout(() => setScoreChange(null), 2000);
+      setFoundLoops((prev) => [...prev, textWithoutBrackets]);
+    } else if (label === "Big Condition" && !foundBigConditions.includes(textWithoutBrackets)) {
+      updateScore(3);
+      setScoreChange(3);
+      setTimeout(() => setScoreChange(null), 2000);
+      setFoundBigConditions((prev) => [...prev, textWithoutBrackets]);
+    } else if (label === "Calculations" && !foundCalculations.includes(textWithoutBrackets)) {
+      updateScore(3);
+      setScoreChange(3);
+      setTimeout(() => setScoreChange(null), 2000);
+      setFoundCalculations((prev) => [...prev, textWithoutBrackets]);
     }
-    if (highlightedTexts.includes(textWithoutBrackets)) {
-      alert("This text has already been selected.");
-      return;
+  } else {
+    updateScore(-2);
+    if (totalScore > 0) {
+      setScoreChange(-2);
+      setTimeout(() => setScoreChange(null), 2000);
     }
-    // Handle highlighting and adding to context
-    if (label === "Edit PlaceHolder") {
-      if (!hasValidBrackets || selectedText.length >= 40) return;
-      addHighlightedText(textWithoutBrackets);
-      const span = document.createElement("span");
-      span.style.backgroundColor = isDarkMode ? "rgba(255, 245, 157, 0.5)" : "rgba(255, 245, 157, 0.7)";
-      span.textContent = selectedText;
-      range.deleteContents();
-      range.insertNode(span);
-    }
-    else if (label === "Small Condition") {
-      if (!isSmallCondition || selectedText.length < 35 || selectedText.length > 450) return;
-      addHighlightedText(textWithoutBrackets);
-      const span = document.createElement("span");
-      span.style.backgroundColor = isDarkMode ? "rgba(129, 236, 236, 0.5)" : "rgba(129, 236, 236, 0.7)";
-      span.textContent = selectedText;
-      range.deleteContents();
-      range.insertNode(span);
-    }
-    else if (label === "Big Condition") {
-      if (!isBigCondition) return;
+    return;
+  }
 
-      let clauseContent = textWithoutBrackets;
-      const headingsToStrip = ["PROBATIONARY PERIOD", "PENSION"];
-      for (const heading of headingsToStrip) {
-        if (textWithoutBrackets.startsWith(heading)) {
-          clauseContent = textWithoutBrackets.slice(heading.length).trim();
-          break;
+  // Prepare the text to be added to highlightedTexts
+  let textToAdd = textWithoutBrackets;
+  if (isBigCondition) {
+    const headingsToStrip = ["PROBATIONARY PERIOD", "PENSION"];
+    for (const heading of headingsToStrip) {
+      if (textWithoutBrackets.startsWith(heading)) {
+        textToAdd = textWithoutBrackets.slice(heading.length).trim();
+        break;
+      }
+    }
+  }
+
+  // Handle small condition
+  if (label === "Small Condition" && isSmallCondition) {
+    if (selectedText.length < 35 || selectedText.length > 450) return;
+    if (!highlightedTexts.includes(textToAdd)) {
+      addHighlightedText(textToAdd);
+    }
+    const span = document.createElement("span");
+    span.style.backgroundColor = isDarkMode ? "rgba(129, 236, 236, 0.5)" : "rgba(129, 236, 236, 0.7)";
+    span.textContent = selectedText;
+    range.deleteContents();
+    range.insertNode(span);
+  }
+  // Handle loop
+  else if (label === "Loop" && isLoop) {
+    if (!highlightedTexts.includes("other locations")) {
+      addHighlightedText("other locations");
+    }
+    const span = document.createElement("span");
+    span.style.backgroundColor = isDarkMode ? "rgba(0, 245, 157, 0.5)" : "rgba(0, 245, 157, 0.7)";
+    span.textContent = selectedText;
+    range.deleteContents();
+    range.insertNode(span);
+  }
+  // Handle placeholder
+  else if (label === "Edit PlaceHolder" && hasValidBrackets) {
+    if (selectedText.length >= 40) return;
+    if (!highlightedTexts.includes(textToAdd)) {
+      addHighlightedText(textToAdd);
+    }
+    const span = document.createElement("span");
+    span.style.backgroundColor = isDarkMode ? "rgba(255, 245, 157, 0.5)" : "rgba(255, 245, 157, 0.7)";
+    span.textContent = selectedText;
+    range.deleteContents();
+    range.insertNode(span);
+  }
+  // Handle big condition
+  else if (label === "Big Condition" && isBigCondition) {
+    if (!highlightedTexts.includes(textToAdd)) {
+      addHighlightedText(textToAdd);
+    }
+    const fragment = document.createDocumentFragment();
+    const contents = range.cloneContents();
+
+    const applyHighlight = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const span = document.createElement("span");
+        span.style.backgroundColor = isDarkMode ? "rgba(186, 220, 88, 0.5)" : "rgba(186, 220, 88, 0.7)";
+        span.textContent = node.textContent;
+        return span;
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as HTMLElement;
+        const newElement = document.createElement(element.tagName);
+        for (const attr of element.attributes) {
+          newElement.setAttribute(attr.name, attr.value);
         }
-      }
-
-      addHighlightedText(clauseContent);
-
-      const fragment = document.createDocumentFragment();
-      const contents = range.cloneContents();
-
-      const applyHighlight = (node: Node) => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          const span = document.createElement("span");
-          span.style.backgroundColor = isDarkMode ? "rgba(186, 220, 88, 0.5)" : "rgba(186, 220, 88, 0.7)";
-          span.textContent = node.textContent;
-          return span;
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-          const element = node as HTMLElement;
-          const newElement = document.createElement(element.tagName);
-          for (const attr of element.attributes) {
-            newElement.setAttribute(attr.name, attr.value);
+        element.childNodes.forEach((child) => {
+          const newChild = applyHighlight(child);
+          if (newChild) {
+            newElement.appendChild(newChild);
           }
-          element.childNodes.forEach((child) => {
-            const newChild = applyHighlight(child);
-            if (newChild) {
-              newElement.appendChild(newChild);
-            }
-          });
-          return newElement;
-        }
-        return null;
-      };
-
-      contents.childNodes.forEach((node) => {
-        const newNode = applyHighlight(node);
-        if (newNode) {
-          fragment.appendChild(newNode);
-        }
-      });
-
-      range.deleteContents();
-      range.insertNode(fragment);
-
-      const probationClause = "(The first [Probation Period Length] of employment will be a probationary period. The Company shall assess the Employee's performance and suitability during this time. The Company may extend the probationary period by up to [Probation Extension Length] if further assessment is required. During the probationary period, either party may terminate the employment by providing [one week's] written notice. Upon successful completion, the Employee will be confirmed in their role.)";
-      const terminationClause = "(After the probationary period, either party may terminate the employment by providing [Notice Period] written notice. The Company reserves the right to make a payment in lieu of notice. The Company may summarily dismiss the Employee without notice in cases of gross misconduct.)";
-      if (selectedText === probationClause) {
-        addHighlightedText("Probation Period Length");
-      } else if (selectedText === terminationClause) {
-        addHighlightedText("Notice Period");
+        });
+        return newElement;
       }
+      return null;
+    };
+
+    contents.childNodes.forEach((node) => {
+      const newNode = applyHighlight(node);
+      if (newNode) {
+        fragment.appendChild(newNode);
+      }
+    });
+
+    range.deleteContents();
+    range.insertNode(fragment);
+
+    const probationClause = "(The first [Probation Period Length] of employment will be a probationary period...)";
+    const terminationClause = "(After the probationary period, either party may terminate the employment...)";
+    if (selectedText === probationClause && !highlightedTexts.includes("Probation Period Length")) {
+      addHighlightedText("Probation Period Length");
+    } else if (selectedText === terminationClause && !highlightedTexts.includes("Notice Period")) {
+      addHighlightedText("Notice Period");
     }
-    else if (label === "Loop") {
-      if (!isLoop) return;
-      addHighlightedText(textWithoutBrackets);
-      addHighlightedText("Other Locations");
-      const span = document.createElement("span");
-      span.style.backgroundColor = isDarkMode ? "rgba(0, 245, 157, 0.5)" : "rgba(0, 245, 157, 0.7)";
-      span.textContent = selectedText;
-      range.deleteContents();
-      range.insertNode(span);
+  }
+  // Handle calculations
+  else if (label === "Calculations" && isCalculation) {
+    if (textWithoutBrackets !== "Unused Holiday Days") return;
+    if (!highlightedTexts.includes(textToAdd)) {
+      addHighlightedText(textToAdd);
     }
-    else if (label === "Calculations") {
-      if (textWithoutBrackets !== "Unused Holiday Days") return;
-      addHighlightedText(textWithoutBrackets);
-      const span = document.createElement("span");
-      span.style.backgroundColor = isDarkMode ? "rgba(245, 0, 221, 0.61)" : "rgba(245, 0, 221, 0.81)";
-      span.textContent = selectedText;
-      range.deleteContents();
-      range.insertNode(span);
-    }
-  };
+    const span = document.createElement("span");
+    span.style.backgroundColor = isDarkMode ? "rgba(245, 0, 221, 0.61)" : "rgba(245, 0, 221, 0.81)";
+    span.textContent = selectedText;
+    range.deleteContents();
+    range.insertNode(span);
+  }
+};
 
   useEffect(() => {
     sessionStorage.removeItem("level");
@@ -247,7 +250,7 @@ const Level3_Quiz = () => {
         : "bg-gradient-to-br from-indigo-50 via-teal-50 to-pink-50"
         }`}
     >
-      <Navbar level={"/Level-Three-Quiz"} questionnaire={"/Questionnaire_Level3"} live_generation={"/Live_Generation"} calculations={"/Calculations"} />
+      <Navbar level={"/Level-Three-Quiz"} questionnaire={"/Questionnaire_Level3"} live_generation={"/Live_Generation_2"} calculations={"/Calculations"} />
 
       {/* Score Display */}
       <div className="fixed top-16 left-0 z-50 px-6 py-3">

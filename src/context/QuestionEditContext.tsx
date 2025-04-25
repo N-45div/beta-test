@@ -47,7 +47,8 @@ const defaultValues: QuestionMaps = {
         "Authorized Representative": "What's the name of the representative?",
         "Job Title of the authorized representative": "What's the job title of the authorized representative?",
         "Date of signing by Employee": "What's the date of signing by the employee?",
-        "other locations": "What are the other work locations?"
+        "other locations": "What is the additional work location?", // Added for loop question
+        "USA": "What is the governing country?", // Added for [USA] placeholder
     },
     numberTypes: {
         "Probation Period Length": "What's the probation period length?",
@@ -96,65 +97,75 @@ export const QuestionEditProvider = ({ children }: { children: ReactNode }) => {
     const [questionMaps, setQuestionMaps] = useState<QuestionMaps>(defaultValues);
   
     const updateQuestion = (type: keyof QuestionMaps, key: string, value: string) => {
-      setQuestionMaps(prev => ({
+      setQuestionMaps((prev) => ({
         ...prev,
         [type]: {
           ...prev[type],
-          [key]: value
-        }
+          [key]: value,
+        },
       }));
     };
     const validateQuestionRelevance = (placeholder: string, question: string): boolean => {
-        const { textTypes, numberTypes, dateTypes, radioTypes } = questionMaps;
-        const lowerQuestion = question.toLowerCase().trim();
-      
-        if (textTypes.hasOwnProperty(placeholder)) {
-          if (placeholder === "Employer Name") {
-            return (
-              lowerQuestion.includes("employer") &&
-              (lowerQuestion.includes("name") || lowerQuestion.includes("company"))
-            );
-          }
-          if (placeholder === "Registered Address") {
-            return (
-              lowerQuestion.includes("address") &&
-              (lowerQuestion.includes("employer") || lowerQuestion.includes("company") || lowerQuestion.includes("registered"))
-            );
-          }
-          if (placeholder === "Employee Name") {
-            return (
-              lowerQuestion.includes("employee") &&
-              (lowerQuestion.includes("name") || lowerQuestion.includes("person"))
-            );
-          }
-          if (placeholder === "Employee Address") {
-            return (
-              lowerQuestion.includes("employee") &&
-              lowerQuestion.includes("address")
-            );
-          }
-          return lowerQuestion.includes(placeholder.toLowerCase().replace(/ /g, " ")) || lowerQuestion.includes(placeholder.toLowerCase());
-        }
-      
-        if (numberTypes.hasOwnProperty(placeholder)) {
+      const { textTypes, numberTypes, dateTypes, radioTypes } = questionMaps;
+      const lowerQuestion = question.toLowerCase().trim();
+  
+      if (textTypes.hasOwnProperty(placeholder)) {
+        if (placeholder === "Employer Name") {
           return (
-            lowerQuestion.includes("what") &&
-            (lowerQuestion.includes("length") || lowerQuestion.includes("weeks") || lowerQuestion.includes("rate") || lowerQuestion.includes("salary") || lowerQuestion.includes("entitlement") || lowerQuestion.includes("days") || lowerQuestion.includes("amount") || lowerQuestion.includes("period"))
+            lowerQuestion.includes("employer") &&
+            (lowerQuestion.includes("name") || lowerQuestion.includes("company"))
           );
         }
-      
-        if (dateTypes.hasOwnProperty(placeholder)) {
-          return lowerQuestion.includes("what") && lowerQuestion.includes("date");
-        }
-      
-        if (radioTypes.hasOwnProperty(placeholder)) {
+        if (placeholder === "Registered Address") {
           return (
-            lowerQuestion.includes("is") &&
-            (lowerQuestion.includes("applicable") || lowerQuestion.includes("apply") || lowerQuestion.includes("receive"))
+            lowerQuestion.includes("address") &&
+            (lowerQuestion.includes("employer") || lowerQuestion.includes("company") || lowerQuestion.includes("registered"))
           );
         }
-      
-        return true;
+        if (placeholder === "Employee Name") {
+          return (
+            lowerQuestion.includes("employee") &&
+            (lowerQuestion.includes("name") || lowerQuestion.includes("person"))
+          );
+        }
+        if (placeholder === "Employee Address") {
+          return lowerQuestion.includes("employee") && lowerQuestion.includes("address");
+        }
+        if (placeholder === "USA") { // Added validation for [USA]
+          return lowerQuestion.includes("country") || lowerQuestion.includes("governing");
+        }
+        return (
+          lowerQuestion.includes(placeholder.toLowerCase().replace(/ /g, " ")) ||
+          lowerQuestion.includes(placeholder.toLowerCase())
+        );
+      }
+  
+      if (numberTypes.hasOwnProperty(placeholder)) {
+        return (
+          lowerQuestion.includes("what") &&
+          (lowerQuestion.includes("length") ||
+            lowerQuestion.includes("weeks") ||
+            lowerQuestion.includes("rate") ||
+            lowerQuestion.includes("salary") ||
+            lowerQuestion.includes("entitlement") ||
+            lowerQuestion.includes("days") ||
+            lowerQuestion.includes("amount") ||
+            lowerQuestion.includes("period"))
+        );
+      }
+  
+      if (dateTypes.hasOwnProperty(placeholder)) {
+        return lowerQuestion.includes("what") && lowerQuestion.includes("date");
+      }
+  
+      if (radioTypes.hasOwnProperty(placeholder)) {
+        return (
+          lowerQuestion.includes("is") &&
+          (lowerQuestion.includes("applicable") || lowerQuestion.includes("apply") || lowerQuestion.includes("receive"))
+        );
+      }
+  
+      return true;
     };
 
     const findKeyByValue = (obj: { [key: string]: string }, value: string): string | undefined => {
@@ -172,67 +183,66 @@ export const QuestionEditProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const determineQuestionType = (text: string): { 
-        primaryType: QuestionType, 
-        primaryValue: string, 
-        validTypes: QuestionType[], 
-        alternateType?: QuestionType, 
-        alternateValue?: string 
+      primaryType: QuestionType, 
+      primaryValue: string, 
+      validTypes: QuestionType[], 
+      alternateType?: QuestionType, 
+      alternateValue?: string 
     } => {
-        const { textTypes, numberTypes, dateTypes, radioTypes } = questionMaps;
-        let primaryType: QuestionType = "Unknown";
-        let primaryValue: string = "";
-        let validTypes: QuestionType[] = [];
-        let alternateType: QuestionType | undefined;
-        let alternateValue: string | undefined;
-      
-        // Radio types (restrict to Radio only, including full clause)
-        const fullProbationClause = "The first [Probation Period Length] of employment will be a probationary period. The Company shall assess the Employee’s performance and suitability during this time. Upon successful completion, the Employee will be confirmed in their role.";
-        const fullTerminationClause = "After the probationary period, either party may terminate the employment by providing [Notice Period] written notice. The Company reserves the right to make a payment in lieu of notice. The Company may summarily dismiss the Employee without notice in cases of gross misconduct.";
-        const fullSickPayClause = "The Employee may also be entitled to Company sick pay of [Details of Company Sick Pay Policy]";
-      
-        if (radioTypes.hasOwnProperty(text) || text === fullProbationClause || text === fullTerminationClause || text === fullSickPayClause) {
-          primaryType = "Radio";
-          primaryValue = radioTypes[text] || radioTypes[fullProbationClause] || radioTypes[fullSickPayClause] || radioTypes[fullTerminationClause];
-          validTypes.push("Radio");
+      const { textTypes, numberTypes, dateTypes, radioTypes } = questionMaps;
+      let primaryType: QuestionType = "Unknown";
+      let primaryValue: string = "";
+      let validTypes: QuestionType[] = ["Text", "Paragraph", "Email", "Number", "Date", "Radio"]; // Allow all types in dropdown
+      let alternateType: QuestionType | undefined;
+      let alternateValue: string | undefined;
+    
+      // Radio types (including full clauses)
+      const fullProbationClause = "The first [Probation Period Length] of employment will be a probationary period. The Company shall assess the Employee’s performance and suitability during this time. Upon successful completion, the Employee will be confirmed in their role.";
+      const fullTerminationClause = "After the probationary period, either party may terminate the employment by providing [Notice Period] written notice. The Company reserves the right to make a payment in lieu of notice. The Company may summarily dismiss the Employee without notice in cases of gross misconduct.";
+      const fullSickPayClause = "The Employee may also be entitled to Company sick pay of [Details of Company Sick Pay Policy]";
+    
+      if (radioTypes.hasOwnProperty(text) || text === fullProbationClause || text === fullTerminationClause || text === fullSickPayClause) {
+        primaryType = "Radio";
+        primaryValue = radioTypes[text] || radioTypes[fullProbationClause] || radioTypes[fullSickPayClause] || radioTypes[fullTerminationClause];
+        // validTypes already includes all types
+      }
+    
+      // Text types
+      if (textTypes.hasOwnProperty(text)) {
+        primaryType = "Text";
+        primaryValue = textTypes[text];
+        // validTypes already includes all types
+      }
+    
+      // Number types
+      if (numberTypes.hasOwnProperty(text)) {
+        if (primaryType === "Unknown") {
+          primaryType = "Number";
+          primaryValue = numberTypes[text];
+        } else {
+          alternateType = "Number";
+          alternateValue = numberTypes[text];
         }
-      
-        // Text types (restrict to Text only)
-        if (textTypes.hasOwnProperty(text)) {
-          primaryType = "Text";
-          primaryValue = textTypes[text];
-          validTypes = ["Text"];
+        // validTypes already includes all types
+      }
+    
+      // Date types
+      if (dateTypes.hasOwnProperty(text)) {
+        if (primaryType === "Unknown") {
+          primaryType = "Date";
+          primaryValue = dateTypes[text];
+        } else {
+          alternateType = "Date";
+          alternateValue = dateTypes[text];
         }
-      
-        // Number types (restrict to Number only)
-        if (numberTypes.hasOwnProperty(text)) {
-          if (primaryType === "Unknown") {
-            primaryType = "Number";
-            primaryValue = numberTypes[text];
-          } else {
-            alternateType = "Number";
-            alternateValue = numberTypes[text];
-          }
-          validTypes.push("Number");
-        }
-      
-        if (dateTypes.hasOwnProperty(text)) {
-          if (primaryType === "Unknown") {
-            primaryType = "Date";
-            primaryValue = dateTypes[text];
-          } else {
-            alternateType = "Date";
-            alternateValue = dateTypes[text];
-          }
-          validTypes.push("Date");
-        }
-      
-        
-      
-        if (validTypes.length === 0) {
-          return { primaryType: "Unknown", primaryValue: "", validTypes: ["Text", "Paragraph", "Email", "Number", "Date", "Radio"] };
-        }
-      
-        return { primaryType, primaryValue, validTypes, alternateType, alternateValue };
+        // validTypes already includes all types
+      }
+    
+      if (primaryType === "Unknown") {
+        return { primaryType: "Unknown", primaryValue: "", validTypes: ["Text", "Paragraph", "Email", "Number", "Date", "Radio"] };
+      }
+    
+      return { primaryType, primaryValue, validTypes, alternateType, alternateValue };
     };
     return (
       <QuestionEditContext.Provider

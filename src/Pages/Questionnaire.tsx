@@ -1,10 +1,12 @@
 import Navbar from "../components/Navbar";
 import { FaChevronLeft, FaChevronRight, FaChevronDown } from "react-icons/fa";
-import { useState, useEffect, useContext, useCallback } from "react";
+import { useState, useEffect, useContext, useCallback, useRef } from "react";
 import { useQuestionType } from "../context/QuestionTypeContext";
 import { useHighlightedText } from "../context/HighlightedTextContext";
 import { determineQuestionType } from "../utils/questionTypeUtils";
 import { ThemeContext } from "../context/ThemeContext";
+import "shepherd.js/dist/css/shepherd.css";
+import { useScore } from "../context/ScoreContext"; // Import the real useScore hook
 
 interface DivWithDropdownProps {
   textValue: string;
@@ -30,8 +32,12 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
   isFollowUp = false,
 }) => {
   const { isDarkMode } = useContext(ThemeContext);
-  const [questionText, setQuestionText] = useState(initialQuestionText || "No text selected");
-  const [selectedType, setSelectedType] = useState<string>(initialType || "Text");
+  const [questionText, setQuestionText] = useState(
+    initialQuestionText || "No text selected"
+  );
+  const [selectedType, setSelectedType] = useState<string>(
+    initialType || "Text"
+  );
   const [isOpen, setIsOpen] = useState(false);
   const [isRequired, setIsRequired] = useState(initialRequired);
   const [typeChanged, setTypeChanged] = useState(false);
@@ -39,7 +45,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
 
   const handleTypeSelect = (type: string) => {
     if (typeChanged) return;
-    
+
     setSelectedType(type);
     onTypeChange(index, type);
     setTypeChanged(true);
@@ -73,14 +79,37 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
     onRequiredChange(index, newRequired);
   };
 
-  const dropdownOptions = ["Text", "Paragraph", "Email", "Radio", "Number", "Date"];
+  const dropdownOptions = [
+    "Text",
+    "Paragraph",
+    "Email",
+    "Radio",
+    "Number",
+    "Date",
+  ];
 
   return (
-    <div className={`flex items-center space-x-8 w-full relative ${isFollowUp ? "ml-0" : ""}`}>
+    <div
+      className={`flex items-center space-x-8 w-full relative ${
+        isFollowUp ? "ml-0" : ""
+      }`}
+    >
       <button className="flex flex-col justify-between h-10 w-12 p-1 transform hover:scale-105 transition-all duration-300">
-        <span className={`block h-1 w-full rounded-full ${isDarkMode ? "bg-teal-400" : "bg-teal-600"}`}></span>
-        <span className={`block h-1 w-full rounded-full ${isDarkMode ? "bg-teal-400" : "bg-teal-600"}`}></span>
-        <span className={`block h-1 w-full rounded-full ${isDarkMode ? "bg-teal-400" : "bg-teal-600"}`}></span>
+        <span
+          className={`block h-1 w-full rounded-full ${
+            isDarkMode ? "bg-teal-400" : "bg-teal-600"
+          }`}
+        ></span>
+        <span
+          className={`block h-1 w-full rounded-full ${
+            isDarkMode ? "bg-teal-400" : "bg-teal-600"
+          }`}
+        ></span>
+        <span
+          className={`block h-1 w-full rounded-full ${
+            isDarkMode ? "bg-teal-400" : "bg-teal-600"
+          }`}
+        ></span>
       </button>
       <div
         className={`relative w-full max-w-lg h-36 rounded-xl shadow-lg flex flex-col items-center justify-center text-lg font-semibold p-6 z-10 transform transition-all duration-300 hover:shadow-xl ${
@@ -90,7 +119,11 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
         }`}
       >
         <div className="relative w-full flex items-center">
-          <div className={`h-0.5 w-1/2 absolute left-0 opacity-50 ${isDarkMode ? "bg-teal-400" : "bg-teal-500"}`}></div>
+          <div
+            className={`h-0.5 w-1/2 absolute left-0 opacity-50 ${
+              isDarkMode ? "bg-teal-400" : "bg-teal-500"
+            }`}
+          ></div>
           <input
             type="text"
             value={questionText}
@@ -112,12 +145,16 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
                 isDarkMode
                   ? "bg-gray-600/80 text-teal-200 hover:bg-gray-500"
                   : "bg-white/80 text-teal-900 hover:bg-white"
-              } ${typeChanged ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${typeChanged ? "opacity-50 cursor-not-allowed" : ""}`}
               onClick={() => !typeChanged && setIsOpen(!isOpen)}
               disabled={typeChanged}
             >
               <span>{selectedType}</span>
-              {!typeChanged && <FaChevronDown className={isDarkMode ? "text-teal-400" : "text-teal-600"} />}
+              {!typeChanged && (
+                <FaChevronDown
+                  className={isDarkMode ? "text-teal-400" : "text-teal-600"}
+                />
+              )}
             </button>
             {isOpen && !typeChanged && (
               <div
@@ -152,7 +189,13 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
             )}
           </div>
           <label className="flex items-center space-x-2 cursor-pointer">
-            <span className={`text-sm ${isDarkMode ? "text-teal-300" : "text-teal-700"}`}>Required</span>
+            <span
+              className={`text-sm ${
+                isDarkMode ? "text-teal-300" : "text-teal-700"
+              }`}
+            >
+              Required
+            </span>
             <div
               className={`relative w-12 h-6 rounded-full p-1 transition-colors duration-300 ${
                 isRequired
@@ -181,10 +224,25 @@ const Questionnaire = () => {
   const [leftActive, setLeftActive] = useState(true);
   const [rightActive, setRightActive] = useState(false);
   const { highlightedTexts } = useHighlightedText();
-  const { selectedTypes, setSelectedTypes, setEditedQuestions, requiredQuestions, setRequiredQuestions } = useQuestionType();
+  const {
+    selectedTypes,
+    setSelectedTypes,
+    setEditedQuestions,
+    requiredQuestions,
+    setRequiredQuestions,
+  } = useQuestionType();
   const [uniqueQuestions, setUniqueQuestions] = useState<string[]>([]);
   const [duplicateDetected] = useState<boolean>(false);
   const [questionTexts, setQuestionTexts] = useState<string[]>([]);
+  const { questionnaireScore, updateQuestionnaireScore } = useScore(); // Use the imported useScore hook
+  const [scoredQuestions, setScoredQuestions] = useState<Record<number, any>>({});
+  const [bonusAwarded, setBonusAwarded] = useState(false);
+  const [scoreFeedback, setScoreFeedback] = useState<{
+    points: number;
+    id: number;
+  } | null>(null);
+  const [, setTypeChangedMap] = useState<Record<number, boolean>>({});
+  const feedbackId = useRef(0);
 
   const followUpQuestions = [
     "What's the probation period length?",
@@ -192,6 +250,12 @@ const Questionnaire = () => {
     "How many weeks?",
     "Who is the HR/Relevant Contact?",
   ];
+
+  const showFeedback = (points: number) => {
+    feedbackId.current += 1;
+    setScoreFeedback({ points, id: feedbackId.current });
+    setTimeout(() => setScoreFeedback(null), 1500);
+  };
 
   const initializeRequiredStatus = (texts: string[]) => {
     return texts.map(() => false);
@@ -201,18 +265,122 @@ const Questionnaire = () => {
     const result = determineQuestionType(text);
     return {
       ...result,
-      correctType: result.primaryType
+      correctType: result.primaryType,
     };
   }, []);
+
+  const scoreTypeSelection = useCallback(
+    (index: number, selectedType: string) => {
+      if (scoredQuestions[index]?.typeScored) return;
+
+      const textValue = uniqueQuestions[index];
+      const { correctType } = enhancedDetermineQuestionType(textValue);
+
+      const isEquivalent =
+        (selectedType === "Text" && correctType === "Paragraph") ||
+        (selectedType === "Paragraph" && correctType === "Text");
+
+      const isCorrect = selectedType === correctType || isEquivalent;
+      const points = isCorrect ? 2 : -2;
+
+      updateQuestionnaireScore(points);
+      showFeedback(points);
+
+      setScoredQuestions((prev) => ({
+        ...prev,
+        [index]: {
+          ...prev[index],
+          typeScored: true,
+          typeCorrect: isCorrect,
+        },
+      }));
+
+      setTypeChangedMap((prev) => ({
+        ...prev,
+        [index]: true,
+      }));
+    },
+    [
+      uniqueQuestions,
+      enhancedDetermineQuestionType,
+      updateQuestionnaireScore,
+      scoredQuestions,
+      setTypeChangedMap,
+    ]
+  );
+
+  const scoreRequiredStatus = useCallback(
+    (index: number, isRequired: boolean) => {
+      if (isRequired) {
+        if (!scoredQuestions[index]?.requiredScored) {
+          updateQuestionnaireScore(2);
+          showFeedback(2);
+          setScoredQuestions((prev) => ({
+            ...prev,
+            [index]: {
+              ...prev[index],
+              requiredScored: true,
+              requiredCorrect: true,
+            },
+          }));
+        }
+      } else {
+        if (scoredQuestions[index]?.requiredScored) {
+          updateQuestionnaireScore(-2);
+          showFeedback(-2);
+          setScoredQuestions((prev) => ({
+            ...prev,
+            [index]: {
+              ...prev[index],
+              requiredScored: false,
+              requiredCorrect: false,
+            },
+          }));
+        }
+      }
+    },
+    [updateQuestionnaireScore, scoredQuestions]
+  );
+
+  const checkForBonus = useCallback(() => {
+    if (uniqueQuestions.length === 0 || bonusAwarded) return;
+
+    const allCorrect = uniqueQuestions.every((text, index) => {
+      const { correctType } = enhancedDetermineQuestionType(text);
+      const selectedType = selectedTypes[index];
+
+      const typeCorrect =
+        selectedType === correctType ||
+        (selectedType === "Text" && correctType === "Paragraph") ||
+        (selectedType === "Paragraph" && correctType === "Text");
+
+      const requiredCorrect = requiredQuestions[index];
+      return typeCorrect && requiredCorrect;
+    });
+
+    if (allCorrect) {
+      updateQuestionnaireScore(10);
+      showFeedback(10);
+      setBonusAwarded(true);
+    }
+  }, [
+    uniqueQuestions,
+    selectedTypes,
+    requiredQuestions,
+    enhancedDetermineQuestionType,
+    bonusAwarded,
+    updateQuestionnaireScore,
+  ]);
 
   useEffect(() => {
     const processedTexts: string[] = [];
     const questionMap = new Map();
 
-    const isProbationaryClauseSelected = highlightedTexts.some((text) =>
-      text.toLowerCase().includes("probationary period") && 
-      text.includes("[Probation Period Length]") && 
-      text.length > "[Probation Period Length]".length
+    const isProbationaryClauseSelected = highlightedTexts.some(
+      (text) =>
+        text.toLowerCase().includes("probationary period") &&
+        text.includes("[Probation Period Length]") &&
+        text.length > "[Probation Period Length]".length
     );
 
     const filteredQuestions = highlightedTexts.filter((text) => {
@@ -223,8 +391,11 @@ const Questionnaire = () => {
         return false;
       }
 
-      const shouldInclude = !isFollowUp || 
-                         (primaryValue === "What's the probation period length?" && text === "Probation Period Length" && !isProbationaryClauseSelected);
+      const shouldInclude =
+        !isFollowUp ||
+        (primaryValue === "What's the probation period length?" &&
+          text === "Probation Period Length" &&
+          !isProbationaryClauseSelected);
       return shouldInclude;
     });
 
@@ -241,25 +412,40 @@ const Questionnaire = () => {
     setRequiredQuestions(initialRequired);
 
     const initialTexts = processedTexts.map(
-      (text) => enhancedDetermineQuestionType(text).primaryValue || "No text selected"
+      (text) =>
+        enhancedDetermineQuestionType(text).primaryValue || "No text selected"
     );
     const initialTypes = processedTexts.map(() => "Text");
 
     setQuestionTexts(initialTexts);
     setSelectedTypes(initialTypes);
     setEditedQuestions(initialTexts);
-  }, [highlightedTexts, setSelectedTypes, setEditedQuestions, setRequiredQuestions, enhancedDetermineQuestionType]);
+  }, [
+    highlightedTexts,
+    setSelectedTypes,
+    setEditedQuestions,
+    setRequiredQuestions,
+    enhancedDetermineQuestionType,
+  ]);
+
+  useEffect(() => {
+    checkForBonus();
+  }, [selectedTypes, requiredQuestions, checkForBonus]);
 
   const handleTypeChange = (index: number, type: string) => {
     const newTypes = [...selectedTypes];
     newTypes[index] = type;
     setSelectedTypes(newTypes);
+    scoreTypeSelection(index, type);
 
     const textValue = uniqueQuestions[index];
     const { primaryValue } = enhancedDetermineQuestionType(textValue);
     const newTexts = [...questionTexts];
-    
-    if (newTexts[index] === primaryValue || newTexts[index] === "No text selected") {
+
+    if (
+      newTexts[index] === primaryValue ||
+      newTexts[index] === "No text selected"
+    ) {
       if (type.toLowerCase() === "radio" && primaryValue) {
         newTexts[index] = primaryValue;
       } else if (type.toLowerCase() === "text" && primaryValue) {
@@ -285,9 +471,9 @@ const Questionnaire = () => {
     const newRequired = [...requiredQuestions];
     newRequired[index] = required;
     setRequiredQuestions(newRequired);
+    scoreRequiredStatus(index, required);
   };
 
-  
   return (
     <div
       className={`min-h-screen flex flex-col font-sans relative transition-all duration-500 ${
@@ -296,8 +482,37 @@ const Questionnaire = () => {
           : "bg-gradient-to-br from-indigo-50 via-teal-50 to-pink-50"
       }`}
     >
-      <Navbar level={"/Level-Two-Part-Two"} questionnaire={"/Questionnaire"} live_generation={"/Live_Generation_2"} />
-      
+      <Navbar
+        level={"/Level-Two-Part-Two"}
+        questionnaire={"/Questionnaire"}
+        live_generation={"/Live_Generation"}
+      />
+
+      <div
+        className={`absolute top-16 left-6 w-40 h-12 rounded-xl shadow-lg flex items-center justify-center text-sm font-semibold z-20 ${
+          isDarkMode
+            ? "bg-gradient-to-r from-gray-700 to-gray-800 text-teal-200"
+            : "bg-gradient-to-r from-teal-200 to-cyan-200 text-teal-900"
+        }`}
+      >
+        <div className="relative">
+          Score: {questionnaireScore}
+          {scoreFeedback && (
+            <div
+              key={scoreFeedback.id}
+              className={`absolute -top-6 right-0 font-bold text-lg ${
+                scoreFeedback.points > 0
+                  ? "text-emerald-400"
+                  : "text-rose-500"
+              } animate-[float-up_1.5s_ease-out_forwards]`}
+            >
+              {scoreFeedback.points > 0
+                ? `+${scoreFeedback.points}`
+                : scoreFeedback.points}
+            </div>
+          )}
+        </div>
+      </div>
       <div
         className={`absolute top-16 right-6 w-80 h-12 rounded-xl shadow-lg flex items-center justify-center text-sm font-semibold z-20 ${
           isDarkMode
@@ -308,7 +523,13 @@ const Questionnaire = () => {
         <div className="flex items-center space-x-6">
           <div
             className={`flex items-center space-x-2 ${
-              leftActive ? (isDarkMode ? "text-teal-400" : "text-teal-600") : (isDarkMode ? "text-cyan-400" : "text-cyan-500")
+              leftActive
+                ? isDarkMode
+                  ? "text-teal-400"
+                  : "text-teal-600"
+                : isDarkMode
+                ? "text-cyan-400"
+                : "text-cyan-500"
             } transition-all duration-300`}
           >
             <span>Employer</span>
@@ -319,7 +540,11 @@ const Questionnaire = () => {
                 setLeftActive(true);
                 setRightActive(false);
               }}
-              className={`${isDarkMode ? "text-teal-400 hover:text-cyan-400" : "text-teal-600 hover:text-cyan-500"} transform hover:scale-110 transition-all duration-300`}
+              className={`${
+                isDarkMode
+                  ? "text-teal-400 hover:text-cyan-400"
+                  : "text-teal-600 hover:text-cyan-500"
+              } transform hover:scale-110 transition-all duration-300`}
             >
               <FaChevronLeft className="text-xl" />
             </button>
@@ -328,21 +553,30 @@ const Questionnaire = () => {
                 setRightActive(true);
                 setLeftActive(false);
               }}
-              className={`${isDarkMode ? "text-teal-400 hover:text-cyan-400" : "text-teal-600 hover:text-cyan-500"} transform hover:scale-110 transition-all duration-300`}
+              className={`${
+                isDarkMode
+                  ? "text-teal-400 hover:text-cyan-400"
+                  : "text-teal-600 hover:text-cyan-500"
+              } transform hover:scale-110 transition-all duration-300`}
             >
               <FaChevronRight className="text-xl" />
             </button>
           </div>
           <div
             className={`flex items-center space-x-2 ${
-              rightActive ? (isDarkMode ? "text-teal-400" : "text-teal-600") : (isDarkMode ? "text-cyan-400" : "text-cyan-500")
+              rightActive
+                ? isDarkMode
+                  ? "text-teal-400"
+                  : "text-teal-600"
+                : isDarkMode
+                ? "text-cyan-400"
+                : "text-cyan-500"
             } transition-all duration-300`}
           >
             <span>Employee</span>
           </div>
         </div>
       </div>
-
       {duplicateDetected && (
         <div
           className={`absolute top-28 right-6 p-4 rounded-xl shadow-md transition-opacity duration-400 z-10 animate-fadeIn ${
@@ -352,10 +586,11 @@ const Questionnaire = () => {
           }`}
         >
           <p className="font-bold">Duplicate Question</p>
-          <p className="text-sm">This question already exists in the questionnaire.</p>
+          <p className="text-sm">
+            This question already exists in the questionnaire.
+          </p>
         </div>
       )}
-
       <div className="flex-grow flex flex-col items-center justify-center pt-24 pb-12 px-6 overflow-y-auto">
         <div className="space-y-12 w-full max-w-4xl">
           {uniqueQuestions.length > 0 ? (
@@ -392,7 +627,8 @@ const Questionnaire = () => {
                   isDarkMode ? "text-teal-400" : "text-teal-500"
                 }`}
               >
-                Go to the Document tab and select text in square brackets to generate questions.
+                Go to the Document tab and select text in square brackets to
+                generate questions.
               </p>
             </div>
           )}

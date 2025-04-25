@@ -6,8 +6,13 @@ import App from "./App.tsx";
 import { QuestionTypeProvider } from "./context/QuestionTypeContext";
 import { HighlightedTextProvider } from "./context/HighlightedTextContext"; // Import HighlightedTextProvider
 import { ScoreProvider } from "./context/ScoreContext.tsx";
+import './crisp-override.css'; // make sure the path matches
+
+
+
 
 createRoot(document.getElementById("root")!).render(
+  
   <BrowserRouter>
     <StrictMode>
       <HighlightedTextProvider>
