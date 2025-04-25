@@ -1,3 +1,4 @@
+import React from "react";
 import Navbar from "../components/Navbar";
 import { FaChevronLeft, FaChevronRight, FaChevronDown } from "react-icons/fa";
 import { useState, useEffect, useContext, useCallback, useRef } from "react";
@@ -224,6 +225,7 @@ const Questionnaire_Level3 = () => {
     "What's the probation extension length?",
     "How many weeks?",
     "Who is the HR/Relevant Contact?",
+    "What is the additional work location?", // Added for loop follow-up
   ];
 
   const showFeedback = (points: number) => {
@@ -324,91 +326,115 @@ const Questionnaire_Level3 = () => {
   useEffect(() => {
     const processedTexts: string[] = [];
     const questionMap = new Map();
-  
+
     const isProbationaryClauseSelected = highlightedTexts.some((text) =>
-      text.toLowerCase().includes("probationary period") && 
-      text.includes("[Probation Period Length]") && 
+      text.toLowerCase().includes("probationary period") &&
+      text.includes("[Probation Period Length]") &&
       text.length > "[Probation Period Length]".length
     );
-  
-    // Filter questions, including [USA]
+
+    const isAdditionalLocationsClauseSelected = highlightedTexts.some((text) =>
+      text.includes("The Employee may be required to work at [other locations].") ||
+      text.includes("/The Employee may be required to work at [other locations]./")
+    );
+
+    // Filter questions
     const filteredQuestions = highlightedTexts.filter((text) => {
       const { primaryValue } = enhancedDetermineQuestionType(text);
       const isFollowUp = followUpQuestions.includes(primaryValue || "");
-  
+
       if (isProbationaryClauseSelected && text === "Probation Period Length") {
         return false;
       }
-  
-      const shouldInclude = 
-        !isFollowUp || 
-        text === "USA" || // Ensure [USA] is included
-        (primaryValue === "What's the probation period length?" && text === "Probation Period Length" && !isProbationaryClauseSelected);
+
+      // Include both the small condition and the loop follow-up explicitly
+      const shouldInclude =
+        text === "USA" ||
+        (text.includes("The Employee may be required to work at [other locations].")) || // Small condition (handles both forms)
+        (text === "other locations" && isAdditionalLocationsClauseSelected) || // Loop follow-up
+        (primaryValue === "What's the probation period length?" &&
+          text === "Probation Period Length" &&
+          !isProbationaryClauseSelected) ||
+        (!isFollowUp && text !== "other locations" && !text.includes("The Employee may be required to work at [other locations]."));
+
       return shouldInclude;
     });
-  
+
     for (const text of filteredQuestions) {
       const { primaryValue } = enhancedDetermineQuestionType(text);
-      const displayValue = primaryValue || text; // Fallback to text if no primaryValue
+      const displayValue = primaryValue || text;
       if (displayValue && !questionMap.has(displayValue)) {
         questionMap.set(displayValue, text);
         processedTexts.push(text);
       }
     }
-  
-    // Ensure [USA] is in processedTexts if it's in highlightedTexts
+
+    // Ensure [USA] is included if present
     if (highlightedTexts.includes("USA") && !processedTexts.includes("USA")) {
       processedTexts.push("USA");
     }
-  
-    setUniqueQuestions(processedTexts);
-    const initialRequired = initializeRequiredStatus(processedTexts);
-    setRequiredQuestions(initialRequired);
-    console.log("processed texts: ", processedTexts);
-    const initialTexts = processedTexts.map(
-      (text) => {
-        const { primaryValue } = determineQuestionType(text);
-        return primaryValue || "No text selected";
+
+    // Reorder to place follow-up questions after their parent
+    const orderedTexts: string[] = [];
+    const smallConditionText = "The Employee may be required to work at [other locations].";
+    const followUpText = "other locations";
+
+    // Add questions in the correct order
+    filteredQuestions.forEach((text) => {
+      if (text.includes(smallConditionText) || text === "/The Employee may be required to work at [other locations]./") {
+        orderedTexts.push(text);
+        // Add the follow-up if it exists in highlightedTexts
+        if (highlightedTexts.includes(followUpText) && !orderedTexts.includes(followUpText)) {
+          orderedTexts.push(followUpText);
+        }
+      } else if (text !== followUpText) {
+        orderedTexts.push(text);
       }
-    );
-    console.log("initialtexts: ", initialTexts);
-  
-    // Initialize question types
+    });
+
+    setUniqueQuestions(orderedTexts);
+    const initialRequired = initializeRequiredStatus(orderedTexts);
+    setRequiredQuestions(initialRequired);
+
+    const initialTexts = orderedTexts.map((text) => {
+      const { primaryValue } = determineQuestionType(text);
+      return primaryValue || "No text selected";
+    });
+
+    // Initialize all question types to "Text" by default, ignoring "correct" types
     const savedTypes = sessionStorage.getItem("selectedQuestionTypes");
     let initialTypes: string[];
     if (savedTypes) {
       initialTypes = JSON.parse(savedTypes);
-      if (initialTypes.length !== processedTexts.length) {
-        initialTypes = processedTexts.map(() => "Text");
+      if (initialTypes.length !== orderedTexts.length) {
+        initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
       }
     } else {
-      initialTypes = processedTexts.map(() => "Text");
+      initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
     }
-  
-    // Initialize typeChanged states, ensuring it's false for all questions initially
+
     const savedTypeChanged = sessionStorage.getItem("typeChangedStates");
     let initialTypeChanged: boolean[];
     if (savedTypeChanged) {
       initialTypeChanged = JSON.parse(savedTypeChanged);
-      if (initialTypeChanged.length !== processedTexts.length) {
-        initialTypeChanged = processedTexts.map(() => false); // Reset to false for all
+      if (initialTypeChanged.length !== orderedTexts.length) {
+        initialTypeChanged = orderedTexts.map(() => false);
       }
     } else {
-      initialTypeChanged = processedTexts.map(() => false); // All false initially
+      initialTypeChanged = orderedTexts.map(() => false);
     }
-  
-    // Initialize question order
+
     const savedOrder = sessionStorage.getItem("questionOrder");
     let initialOrder: number[];
     if (savedOrder) {
       initialOrder = JSON.parse(savedOrder);
-      if (initialOrder.length !== processedTexts.length) {
-        initialOrder = processedTexts.map((_, index) => index);
+      if (initialOrder.length !== orderedTexts.length) {
+        initialOrder = orderedTexts.map((_, index) => index);
       }
     } else {
-      initialOrder = processedTexts.map((_, index) => index);
+      initialOrder = orderedTexts.map((_, index) => index);
     }
-  
+
     setQuestionOrder(initialOrder);
     setQuestionTexts(initialTexts);
     setSelectedTypes(initialTypes);
@@ -416,8 +442,7 @@ const Questionnaire_Level3 = () => {
     setTypeChangedStates(initialTypeChanged);
     setScoredQuestions({});
     setBonusAwarded(false);
-  
-    // Save to sessionStorage
+
     sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(initialTypes));
     sessionStorage.setItem("typeChangedStates", JSON.stringify(initialTypeChanged));
     sessionStorage.setItem("questionOrder", JSON.stringify(initialOrder));
@@ -725,3 +750,7 @@ const Questionnaire_Level3 = () => {
 };
 
 export default Questionnaire_Level3;
+
+
+
+// latest code

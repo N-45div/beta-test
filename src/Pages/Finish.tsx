@@ -57,6 +57,23 @@ const processAgreement = (html: string, answers: UserAnswers) => {
     );
   }
 
+  // Handle Additional Locations clause
+  const additionalLocationsAnswer = answers["Does the employee need to work at additional locations besides the normal place of work?"];
+  const additionalLocationDetails = answers["What is the additional work location?"] as string | undefined;
+  if (additionalLocationsAnswer === true && additionalLocationDetails && typeof additionalLocationDetails === "string" && additionalLocationDetails.trim()) {
+    // Replace or append the additional location details
+    updatedHtml = updatedHtml.replace(
+      /\[other locations\]/gi,
+      additionalLocationDetails
+    );
+  } else if (additionalLocationsAnswer === false || additionalLocationsAnswer === null) {
+    // Remove the clause if not applicable
+    updatedHtml = updatedHtml.replace(
+      /<h2[^>]*>[^<]*ADDITIONAL WORK LOCATIONS[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?\[other locations\][\s\S]*?<\/p>/i,
+      ""
+    );
+  }
+
   // Process other placeholders
   Object.entries(answers).forEach(([question, answer]) => {
     // Skip [USA] since we already handled it

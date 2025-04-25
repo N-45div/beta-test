@@ -13,6 +13,7 @@
     "@fontsource/orbitron": "^5.1.1",
     "@fontsource/pixelify-sans": "^5.1.1",
     "@google/generative-ai": "^0.24.0",
+    "@headlessui/react": "^2.2.2",
     "@hello-pangea/dnd": "^18.0.1",
     "@supabase/supabase-js": "^2.49.4",
     "@tailwindcss/vite": "^4.0.6",

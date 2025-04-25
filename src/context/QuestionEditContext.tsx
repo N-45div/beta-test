@@ -47,7 +47,7 @@ const defaultValues: QuestionMaps = {
         "Authorized Representative": "What's the name of the representative?",
         "Job Title of the authorized representative": "What's the job title of the authorized representative?",
         "Date of signing by Employee": "What's the date of signing by the employee?",
-        "other locations": "What are the other work locations?",
+        "other locations": "What is the additional work location?", // Added for loop question
         "USA": "What is the governing country?", // Added for [USA] placeholder
     },
     numberTypes: {
