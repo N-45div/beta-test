@@ -152,8 +152,8 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
                     : "bg-white/90 backdrop-blur-sm border-teal-100"
                 }`}
                 style={{
-                  maxHeight: "150px",
-                  overflowY: "auto",
+                  // maxHeight: "150px",
+                  // overflowY: "auto",
                   scrollbarWidth: "none",
                   msOverflowStyle: "none",
                 }}
@@ -405,10 +405,13 @@ const Questionnaire_Level3 = () => {
     const savedTypes = sessionStorage.getItem("selectedQuestionTypes");
     let initialTypes: string[];
     if (savedTypes) {
-      initialTypes = JSON.parse(savedTypes);
-      if (initialTypes.length !== orderedTexts.length) {
-        initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
-      }
+      // initialTypes = JSON.parse(savedTypes);
+      // if (initialTypes.length !== orderedTexts.length) {
+      //   initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
+      // }
+      const parsed = JSON.parse(savedTypes);
+      // Keep existing types and default to "Text" for any new items
+      initialTypes = orderedTexts.map((_, index) => parsed[index] ?? "Text");
     } else {
       initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
     }
@@ -416,10 +419,14 @@ const Questionnaire_Level3 = () => {
     const savedTypeChanged = sessionStorage.getItem("typeChangedStates");
     let initialTypeChanged: boolean[];
     if (savedTypeChanged) {
-      initialTypeChanged = JSON.parse(savedTypeChanged);
-      if (initialTypeChanged.length !== orderedTexts.length) {
-        initialTypeChanged = orderedTexts.map(() => false);
-      }
+      // initialTypeChanged = JSON.parse(savedTypeChanged);
+      // if (initialTypeChanged.length !== orderedTexts.length) {
+      //   initialTypeChanged = orderedTexts.map(() => false);
+      // }
+      const parsed = JSON.parse(savedTypeChanged);
+      // keep existing values and default to false for new items
+      initialTypeChanged = orderedTexts.map((_, index) => parsed[index] ?? false);
+
     } else {
       initialTypeChanged = orderedTexts.map(() => false);
     }

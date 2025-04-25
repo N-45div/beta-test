@@ -108,6 +108,16 @@ const Calculations = () => {
         >
           Home
         </button>
+        <button
+          onClick={() => navigate("/Live_Generation_2")}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 text-teal-200 hover:bg-gray-600"
+              : "bg-teal-200 text-teal-900 hover:bg-cyan-200"
+          }`}
+        >
+          Continue
+        </button>
       </div>
       {/* Score Display - Only animation kept */}
       <div className="fixed top-16 left-0 z-50 px-6 py-3">
@@ -231,7 +241,7 @@ const Calculations = () => {
           </div>
         </div>
       )}
-      {highlightedTexts.includes("Unused Holiday Days") && (
+      {/* {highlightedTexts.includes("Unused Holiday Days") && (
         <div className="flex justify-center mt-10">
             <button 
             className="mt-55 px-6 py-3 bg-purple-500 text-white text-lg font-semibold rounded-lg hover:bg-purple-600"
@@ -239,7 +249,7 @@ const Calculations = () => {
                 Continue
             </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

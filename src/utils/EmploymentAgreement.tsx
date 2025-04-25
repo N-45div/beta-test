@@ -32,8 +32,8 @@ export const documentText = `
               <h2 className="text-2xl font-bold mt-6">JOB TITLE AND DUTIES</h2>
               <p>
                   The Employee shall be employed as <span className="placeholder-job-title">[Job Title]</span> and shall report to
-                  <span className="placeholder-reporting-manager">[Reporting Manager]</span>. The Employee's primary duties shall include <span className="placeholder-duties">[Brief Description of Duties]</span>. {The Employee may be required to
-                  perform additional duties as reasonably assigned by the Company.}
+                  <span className="placeholder-reporting-manager">[Reporting Manager]</span>. The Employee's primary duties shall include <span className="placeholder-duties">[Brief Description of Duties]</span>. 
+                  {The Employee may be required to perform additional duties as reasonably assigned by the Company.}
               </p>
           </div>
           <div>
@@ -63,13 +63,15 @@ export const documentText = `
           <div>
               <h2 className="text-2xl font-bold mt-6">HOLIDAY ENTITLEMENT</h2>
               <p>
-                 The Employee shall be entitled to <span className="placeholder-holiday-entitlement">[Holiday Entitlement]</span> days of paid annual leave per year, inclusive of public holidays. Unused leave may not be carried forward without prior approval. {Upon termination, unused leave will be paid. For [Unused Holiday Days] unused days, the holiday pay is [Holiday Pay] [USD].}
+                 The Employee shall be entitled to <span className="placeholder-holiday-entitlement">[Holiday Entitlement]</span> days of paid annual leave per year, inclusive of public holidays. Unused leave may not be carried forward without prior approval. 
+                 {Upon termination, unused leave will be paid. For [Unused Holiday Days] unused days, the holiday pay is [Holiday Pay] [USD].}
               </p>
           </div>
           <div>
               <h2 className="text-2xl font-bold mt-6">SICKNESS ABSENCE</h2>
               <p>
-                If the Employee is unable to work due to illness, they must notify the Company as soon as possible. Statutory Sick Pay (SSP) will be paid in accordance with government regulations. {The Employee may also be entitled to Company sick pay.}
+                If the Employee is unable to work due to illness, they must notify the Company as soon as possible. Statutory Sick Pay (SSP) will be paid in accordance with government regulations. 
+                {The Employee may also be entitled to Company sick pay.}
               </p>
           </div>
           <div>

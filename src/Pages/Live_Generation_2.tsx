@@ -142,7 +142,6 @@ const Live_Generation_2 = () => {
       /\(\/The Employee may be required to work at \[other locations\]\.\/\)/gi,
       ""
     );
-  
     const probationAnswer = userAnswers["Is the clause of probationary period applicable?"];
     if (probationAnswer === null || probationAnswer === false) {
       updatedText = updatedText.replace(
@@ -240,7 +239,7 @@ const Live_Generation_2 = () => {
             `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${countryAnswer}</span>`
           );
         } else if (typeof answer === "boolean") {
-          if (!answer && placeholder !== "other locations") {
+          if ((!answer) && placeholder !== "other locations") {
             updatedText = updatedText.replace(new RegExp(`.*${escapedPlaceholder}.*`, "gi"), "");
           } else {
             updatedText = updatedText.replace(
