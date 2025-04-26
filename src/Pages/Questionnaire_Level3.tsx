@@ -152,8 +152,8 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
                     : "bg-white/90 backdrop-blur-sm border-teal-100"
                 }`}
                 style={{
-                  // maxHeight: "150px",
-                  // overflowY: "auto",
+                  maxHeight: "150px",
+                  overflowY: "auto",
                   scrollbarWidth: "none",
                   msOverflowStyle: "none",
                 }}

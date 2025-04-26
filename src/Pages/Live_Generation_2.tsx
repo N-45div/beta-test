@@ -186,7 +186,26 @@ const Live_Generation_2 = () => {
   
     Object.entries(userAnswers).forEach(([question, answer]) => {
       const placeholder = findPlaceholderByValue(question);
-  
+      if (question === "Is the employee entitled to overtime work?") {
+        const overtimeYesClause = "{The Employee is entitled to overtime pay for authorized overtime work.}";
+        const overtimeNoClause = "{The Employee shall not receive additional payment for overtime worked.}";
+
+        updatedText = updatedText.replace(
+          /<p className="mt-5" id="employment-agreement-working-hours">([\s\S]*?)<\/p>/i,
+          () => {
+            let replacementText = "";
+
+            if (answer === true) {
+              replacementText = `${overtimeYesClause}`;
+            } else if (answer === false) {
+              replacementText = `${overtimeNoClause}`;
+            }
+
+            return `<p className="mt-5" id="employment-agreement-working-hours">${replacementText}</p>`;
+          }
+        );
+        return;
+      }
       if (placeholder === "Unused Holiday Days" && typeof answer === "string") {
         const storedOperationType = localStorage.getItem("operationType");
         const storedOperationValue = localStorage.getItem("operationValue");
@@ -238,7 +257,7 @@ const Live_Generation_2 = () => {
             new RegExp(`\\[USA\\]`, "gi"),
             `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${countryAnswer}</span>`
           );
-        } else if (typeof answer === "boolean") {
+        } else if (typeof answer === "boolean" || answer === null) {
           if ((!answer) && placeholder !== "other locations") {
             updatedText = updatedText.replace(new RegExp(`.*${escapedPlaceholder}.*`, "gi"), "");
           } else {

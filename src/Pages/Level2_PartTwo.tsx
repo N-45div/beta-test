@@ -132,7 +132,12 @@ const LevelTwoPart_Two = () => {
       if (!(selectedText.startsWith("{") && selectedText.endsWith("}")) || 
           selectedText.length < 35 || 
           selectedText.length > 450) return;
-      addHighlightedText(textWithoutBrackets);
+      if (!highlightedTexts.includes(textWithoutBrackets) 
+        && !(highlightedTexts.includes("The Employee shall not receive additional payment for overtime worked") && textWithoutBrackets === "The Employee is entitled to overtime pay for authorized overtime work")
+        && !(highlightedTexts.includes("The Employee is entitled to overtime pay for authorized overtime work") && textWithoutBrackets === "The Employee shall not receive additional payment for overtime worked")
+      ) {
+        addHighlightedText(textWithoutBrackets);
+      }
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(129, 236, 236, 0.5)" : "rgba(129, 236, 236, 0.7)";
       span.textContent = selectedText;

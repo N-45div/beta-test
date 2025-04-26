@@ -50,7 +50,7 @@ export const documentText = `
               <p>
                   The Employee’s normal working hours shall be <span className="placeholder-start-time">[Start Time]</span> to <span className="placeholder-end-time">[End Time]</span>, <span className="placeholder-days-of-work">[Days of Work]</span>. The Employee may be required to work additional hours as necessary to fulfill job responsibilities.
                   <p className="mt-5" id="employment-agreement-working-hours">
-                      {The Employee is entitled to overtime pay for authorized overtime work} {The Employee shall not receive additional payment for overtime worked}.
+                      {The Employee is entitled to overtime pay for authorized overtime work}  {The Employee shall not receive additional payment for overtime worked}.
                   </p>
               </p>
           </div>

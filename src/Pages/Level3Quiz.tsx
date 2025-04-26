@@ -139,7 +139,10 @@ const handleIconClick = (label: string) => {
   // Handle small condition
   if (label === "Small Condition" && isSmallCondition) {
     if (selectedText.length < 35 || selectedText.length > 450) return;
-    if (!highlightedTexts.includes(textToAdd)) {
+    if (!highlightedTexts.includes(textToAdd) 
+      && !(highlightedTexts.includes("The Employee shall not receive additional payment for overtime worked") && textToAdd === "The Employee is entitled to overtime pay for authorized overtime work")
+      && !(highlightedTexts.includes("The Employee is entitled to overtime pay for authorized overtime work") && textToAdd === "The Employee shall not receive additional payment for overtime worked")
+    ) {
       addHighlightedText(textToAdd);
     }
     const span = document.createElement("span");
