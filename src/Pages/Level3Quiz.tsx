@@ -260,14 +260,6 @@ const handleIconClick = (label: string) => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const referrer = document.referrer;
-    const cameFromHome = referrer.includes(window.location.origin + "/");
-
-    if (cameFromHome) {
-      sessionStorage.removeItem("selectedQuestionTypes_3");
-      sessionStorage.removeItem("typeChangedStates_3");
-      sessionStorage.removeItem("questionOrder_3");
-    }
   }, []);
 
   return (
