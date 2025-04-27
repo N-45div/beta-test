@@ -146,7 +146,7 @@ const Live_Generation = () => {
   }
 
   useEffect(() => {
-    const savedOrder = sessionStorage.getItem("questionOrder");
+    const savedOrder = sessionStorage.getItem("questionOrder_2");
     let questionOrder: number[] = [];
     if (savedOrder) {
       questionOrder = JSON.parse(savedOrder);
