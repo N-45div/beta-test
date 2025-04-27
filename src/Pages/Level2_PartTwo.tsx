@@ -46,6 +46,32 @@ const LevelTwoPart_Two = () => {
     sessionStorage.setItem("level", location.pathname);
   }, [location.pathname]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const referrer = document.referrer;
+    const cameFromHome = referrer.includes(window.location.origin + "/");
+
+    if (cameFromHome) {
+      sessionStorage.removeItem("selectedQuestionTypes_2");
+      sessionStorage.removeItem("typeChangedStates_2");
+      sessionStorage.removeItem("questionOrder_2");
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem("selectedQuestionTypes_2");
+      sessionStorage.removeItem("typeChangedStates_2");
+      sessionStorage.removeItem("questionOrder_2");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   const getDocumentText = () => {
     return documentRef.current?.textContent || "";
   };

@@ -238,12 +238,36 @@ const handleIconClick = (label: string) => {
 };
 
   useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem("selectedQuestionTypes_3");
+      sessionStorage.removeItem("typeChangedStates_3");
+      sessionStorage.removeItem("questionOrder_3");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+
+  useEffect(() => {
     sessionStorage.removeItem("level");
     sessionStorage.setItem("level", location.pathname);
   }, [location]);
 
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    const referrer = document.referrer;
+    const cameFromHome = referrer.includes(window.location.origin + "/");
+
+    if (cameFromHome) {
+      sessionStorage.removeItem("selectedQuestionTypes_3");
+      sessionStorage.removeItem("typeChangedStates_3");
+      sessionStorage.removeItem("questionOrder_3");
+    }
   }, []);
 
   return (

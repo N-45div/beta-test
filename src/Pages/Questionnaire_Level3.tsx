@@ -402,7 +402,7 @@ const Questionnaire_Level3 = () => {
     });
 
     // Initialize all question types to "Text" by default, ignoring "correct" types
-    const savedTypes = sessionStorage.getItem("selectedQuestionTypesa_3");
+    const savedTypes = sessionStorage.getItem("selectedQuestionTypes_3");
     let initialTypes: string[];
     if (savedTypes) {
       // initialTypes = JSON.parse(savedTypes);
