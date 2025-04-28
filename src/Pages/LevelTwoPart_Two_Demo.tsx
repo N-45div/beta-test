@@ -25,14 +25,22 @@ const LevelTwoPart_Two_Demo = () => {
   const { isDarkMode } = useContext(ThemeContext);
   const [tooltip, setTooltip] = useState<string | null>(null);
   const { highlightedTexts, addHighlightedText } = useHighlightedText();
-  const { selectedTypes } = useQuestionType();
+  const { selectedTypes, setSelectedTypes } = useQuestionType();
   const documentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     console.log("LevelTwoPart_Two_Demo - Rendering at:", location.pathname);
     sessionStorage.removeItem("level");
     sessionStorage.setItem("level", location.pathname);
-  }, [location.pathname]);
+
+    // Initialize selectedTypes if not already set
+    const savedTypes = sessionStorage.getItem("selectedQuestionTypes");
+    if (!savedTypes && highlightedTexts.length > 0) {
+      const initialTypes = highlightedTexts.map(() => "Text");
+      setSelectedTypes(initialTypes);
+      sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(initialTypes));
+    }
+  }, [location.pathname, highlightedTexts, setSelectedTypes]);
 
   const getDocumentText = () => {
     return documentRef.current?.textContent || "";
@@ -44,7 +52,6 @@ const LevelTwoPart_Two_Demo = () => {
 
     const range = selection.getRangeAt(0);
     const selectedText = range.toString();
-
     let textWithoutBrackets = selectedText;
     let hasValidBrackets = false;
 
@@ -77,6 +84,12 @@ const LevelTwoPart_Two_Demo = () => {
       console.log("Selected Edit Placeholder:", textWithoutBrackets);
       addHighlightedText(textWithoutBrackets);
       console.log("Updated highlightedTexts after adding:", highlightedTexts);
+
+      // Update selectedTypes with default "Text" for new placeholder
+      const newTypes = [...selectedTypes, "Text"];
+      setSelectedTypes(newTypes);
+      sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypes));
+
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(255, 245, 157, 0.5)" : "rgba(255, 245, 157, 0.7)";
       span.textContent = selectedText;
@@ -87,6 +100,12 @@ const LevelTwoPart_Two_Demo = () => {
           selectedText.length < 35 || 
           selectedText.length > 450) return;
       addHighlightedText(textWithoutBrackets);
+
+      // Update selectedTypes with default "Text" for new condition
+      const newTypes = [...selectedTypes, "Text"];
+      setSelectedTypes(newTypes);
+      sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypes));
+
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(129, 236, 236, 0.5)" : "rgba(129, 236, 236, 0.7)";
       span.textContent = selectedText;
@@ -108,9 +127,14 @@ const LevelTwoPart_Two_Demo = () => {
 
       addHighlightedText(clauseContent);
 
+      // Update selectedTypes with default "Text" for new condition
+      const newTypes = [...selectedTypes, "Text"];
+      setSelectedTypes(newTypes);
+      sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypes));
+
       const fragment = document.createDocumentFragment();
       const contents = range.cloneContents();
-      
+
       const applyHighlight = (node: Node) => {
         if (node.nodeType === Node.TEXT_NODE) {
           const span = document.createElement("span");
@@ -158,14 +182,28 @@ const LevelTwoPart_Two_Demo = () => {
       if (normalizedSelectedText === normalizedProbationClause) {
         console.log("Probation Clause matched, adding question instead of placeholder");
         addHighlightedText("Is the clause of probationary period applicable?");
+        // Add "Text" type for the additional question
+        const newTypesWithQuestion = [...newTypes, "Text"];
+        setSelectedTypes(newTypesWithQuestion);
+        sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypesWithQuestion));
       } else if (normalizedSelectedText === normalizedPensionClause) {
         console.log("Pension Clause matched, adding Pension question");
         addHighlightedText("Is the Pension clause applicable?");
+        // Add "Text" type for the additional question
+        const newTypesWithQuestion = [...newTypes, "Text"];
+        setSelectedTypes(newTypesWithQuestion);
+        sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypesWithQuestion));
       } else {
         console.log("No clause matched.");
       }
     } else if (label === "Loop") {
       addHighlightedText(textWithoutBrackets);
+
+      // Update selectedTypes with default "Text" for new loop
+      const newTypes = [...selectedTypes, "Text"];
+      setSelectedTypes(newTypes);
+      sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypes));
+
       const span = document.createElement("span");
       span.style.backgroundColor = isDarkMode ? "rgba(255, 245, 157, 0.5)" : "rgba(255, 245, 157, 0.7)";
       span.textContent = selectedText;

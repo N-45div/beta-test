@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef, useCallback, useContext } from "react";
+import { useState, useRef, useCallback, useContext,useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { documentText } from "../utils/EmploymentAgreement";
 import { useHighlightedText } from "../context/HighlightedTextContext";
@@ -116,12 +116,12 @@ const Live_Generation = () => {
   const [agreement, setAgreement] = useState<string>(documentText);
   const [inputErrors, setInputErrors] = useState<{ [key: string]: string }>({});
   const inputRefs = useRef<(HTMLInputElement | HTMLTextAreaElement | null)[]>([]);
-  const [additionalLocations, setAdditionalLocations] = useState<string[]>([""]); // Initialize with one empty location
+  const [additionalLocations, setAdditionalLocations] = useState<string[]>([""]);
   const [userAnswers, setUserAnswers] = useState<{ [key: string]: string | boolean | null | { amount: string; currency: string } }>({});
-  const [highlightedTexts, setHighlightedTexts] = useState<string[]>(originalHighlightedTexts);
-  const [selectedTypes, setLocalSelectedTypes] = useState<(string | null)[]>(originalSelectedTypes);
-  const [editedQuestions, setLocalEditedQuestions] = useState<string[]>(originalEditedQuestions);
-  const [requiredQuestions, setLocalRequiredQuestions] = useState<boolean[]>(originalRequiredQuestions);
+  const [highlightedTexts, setHighlightedTexts] = useState<string[]>([]);
+  const [selectedTypes, setLocalSelectedTypes] = useState<(string | null)[]>([]);
+  const [editedQuestions, setLocalEditedQuestions] = useState<string[]>([]);
+  const [requiredQuestions, setLocalRequiredQuestions] = useState<boolean[]>([]);
   const [showCertificationPopup, setShowCertificationPopup] = useState(false);
   const [certificationMessage, setCertificationMessage] = useState("");
   const [showWarning, setShowWarning] = useState(false);
@@ -136,7 +136,7 @@ const Live_Generation = () => {
         if (primaryValue === "What's the annual salary?") {
           initialAnswers[primaryValue] = { amount: "", currency: "USD" };
         } else if (primaryValue === "What is the additional work location?") {
-          initialAnswers[primaryValue] = ""; // Initialize as empty string for locations
+          initialAnswers[primaryValue] = "";
         } else {
           initialAnswers[primaryValue] = type === "Radio" ? null : "";
         }
@@ -154,6 +154,19 @@ const Live_Generation = () => {
       questionOrder = originalHighlightedTexts.map((_, index) => index);
     }
 
+    const savedTypes = sessionStorage.getItem("selectedQuestionTypes");
+    let types: string[] = [];
+    if (savedTypes) {
+      types = JSON.parse(savedTypes);
+    } else {
+      types = originalHighlightedTexts.map(() => "Text");
+    }
+
+    const savedTypeChanged = sessionStorage.getItem("typeChangedStates");
+    if (savedTypeChanged) {
+    } else {
+    }
+
     const processedTexts: string[] = [];
     const questionMap = new Map();
 
@@ -164,7 +177,8 @@ const Live_Generation = () => {
     );
 
     const isAdditionalLocationsClauseSelected = originalHighlightedTexts.some((text) =>
-      text.includes("The Employee may be required to work at [other locations].")
+      text.includes("The Employee may be required to work at [other locations].") ||
+      text.includes("/The Employee may be required to work at [other locations]./")
     );
 
     const followUpQuestions = [
@@ -183,28 +197,25 @@ const Live_Generation = () => {
         return false;
       }
 
-      if (
-        text === "other locations" &&
-        !isAdditionalLocationsClauseSelected
-      ) {
+      if (text === "other locations" && !isAdditionalLocationsClauseSelected) {
         return false;
       }
 
       const shouldInclude =
-        !isFollowUp ||
         text === "USA" ||
+        text.includes("The Employee may be required to work at [other locations].") ||
+        (text === "other locations" && isAdditionalLocationsClauseSelected) ||
         (primaryValue === "What's the probation period length?" &&
           text === "Probation Period Length" &&
           !isProbationaryClauseSelected) ||
-        (primaryValue === "What is the additional work location?" &&
-          text === "other locations" &&
-          isAdditionalLocationsClauseSelected);
+        (!isFollowUp && text !== "other locations" && !text.includes("The Employee may be required to work at [other locations]."));
+
       return shouldInclude;
     });
 
     for (const text of filteredQuestions) {
       const { primaryValue } = determineQuestionType(text);
-      const displayValue = primaryValue;
+      const displayValue = primaryValue || text;
       if (displayValue && !questionMap.has(displayValue)) {
         questionMap.set(displayValue, text);
         processedTexts.push(text);
@@ -215,17 +226,32 @@ const Live_Generation = () => {
       processedTexts.push("USA");
     }
 
+    const orderedTexts: string[] = [];
+    const smallConditionText = "The Employee may be required to work at [other locations].";
+    const followUpText = "other locations";
+
+    filteredQuestions.forEach((text) => {
+      if (text.includes(smallConditionText) || text === "/The Employee may be required to work at [other locations]./") {
+        orderedTexts.push(text);
+        if (originalHighlightedTexts.includes(followUpText) && !orderedTexts.includes(followUpText)) {
+          orderedTexts.push(followUpText);
+        }
+      } else if (text !== followUpText) {
+        orderedTexts.push(text);
+      }
+    });
+
     const reorderedHighlightedTexts = questionOrder
-      .map((index) => processedTexts[index])
+      .map((index) => orderedTexts[index])
       .filter((text) => text !== undefined);
     const reorderedSelectedTypes = questionOrder
-      .map((index) => originalSelectedTypes[index])
+      .map((index) => types[index] ?? "Text")
       .filter((type) => type !== undefined);
     const reorderedEditedQuestions = questionOrder
-      .map((index) => originalEditedQuestions[index])
+      .map((index) => originalEditedQuestions[index] || determineQuestionType(orderedTexts[index]).primaryValue || "No text selected")
       .filter((text) => text !== undefined);
     const reorderedRequiredQuestions = questionOrder
-      .map((index) => originalRequiredQuestions[index])
+      .map((index) => originalRequiredQuestions[index] ?? false)
       .filter((req) => req !== undefined);
 
     setHighlightedTexts(reorderedHighlightedTexts);
@@ -239,12 +265,12 @@ const Live_Generation = () => {
 
   useEffect(() => {
     let updatedText = documentText;
-  
-    // Hide the condition by default
+
     updatedText = updatedText.replace(
       /\(\/The Employee may be required to work at \[other locations\]\.\/\)/gi,
       ""
     );
+
     const probationAnswer = userAnswers["Is the clause of probationary period applicable?"];
     if (probationAnswer === null || probationAnswer === false) {
       updatedText = updatedText.replace(
@@ -252,7 +278,7 @@ const Live_Generation = () => {
         ""
       );
     }
-  
+
     const pensionAnswer = userAnswers["Is the Pension clause applicable?"];
     if (pensionAnswer === null || pensionAnswer === false) {
       updatedText = updatedText.replace(
@@ -260,10 +286,10 @@ const Live_Generation = () => {
         ""
       );
     }
-  
+
     const additionalLocationsAnswer = userAnswers["Does the employee need to work at additional locations besides the normal place of work?"];
     if (additionalLocationsAnswer === false) {
-      // No change needed as the condition is already hidden by default
+      // Condition is already hidden
     } else if (additionalLocationsAnswer === true) {
       const locationsAnswer = userAnswers["What is the additional work location?"] as string;
       let formattedLocations = "";
@@ -286,7 +312,7 @@ const Live_Generation = () => {
         `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${formattedLocations}</span>`
       );
     }
-  
+
     Object.entries(userAnswers).forEach(([question, answer]) => {
       const placeholder = findPlaceholderByValue(question);
       if (question === "Is the employee entitled to overtime work?") {
@@ -297,13 +323,11 @@ const Live_Generation = () => {
           /<p className="mt-5" id="employment-agreement-working-hours">([\s\S]*?)<\/p>/i,
           () => {
             let replacementText = "";
-
             if (answer === true) {
               replacementText = `${overtimeYesClause}`;
             } else if (answer === false) {
               replacementText = `${overtimeNoClause}`;
             }
-
             return `<p className="mt-5" id="employment-agreement-working-hours">${replacementText}</p>`;
           }
         );
@@ -314,7 +338,7 @@ const Live_Generation = () => {
         const storedOperationValue = localStorage.getItem("operationValue");
         const operationValue = storedOperationValue ? parseFloat(storedOperationValue) : null;
         let calculatedValue: number | null = null;
-        let floatAnswer = parseFloat(answer).toFixed(2);
+        const floatAnswer = parseFloat(answer).toFixed(2);
         const numericAnswer = parseFloat(floatAnswer);
         if (storedOperationType && operationValue !== null) {
           switch (storedOperationType.toLowerCase()) {
@@ -335,13 +359,13 @@ const Live_Generation = () => {
           }
         }
         localStorage.setItem("calculatedValue", calculatedValue !== null ? String(calculatedValue) : "0");
-  
+
         updatedText = updatedText.replace(
           new RegExp("\\[Holiday Pay\\]", "gi"),
           `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${calculatedValue}</span>`
         );
       }
-  
+
       if (placeholder) {
         const escapedPlaceholder = placeholder.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&");
         if (question === "What's the annual salary?") {
@@ -361,7 +385,7 @@ const Live_Generation = () => {
             `<span class="${isDarkMode ? "bg-teal-600/70 text-teal-100" : "bg-teal-200/70 text-teal-900"} px-1 rounded">${countryAnswer}</span>`
           );
         } else if (typeof answer === "boolean" || answer === null) {
-          if ((!answer) && placeholder !== "other locations") {
+          if (!answer && placeholder !== "other locations") {
             updatedText = updatedText.replace(new RegExp(`.*${escapedPlaceholder}.*`, "gi"), "");
           } else {
             updatedText = updatedText.replace(
@@ -410,9 +434,10 @@ const Live_Generation = () => {
         }
       }
     });
-  
+
     setAgreement(updatedText + " ");
   }, [userAnswers, isDarkMode]);
+
   const validateInput = (type: string, value: string): string => {
     if (!value) return "";
     switch (type) {
@@ -588,7 +613,7 @@ const Live_Generation = () => {
         <div key={index} className="mb-12">
           <div className="w-full">
             <p className={`text-lg font-medium ${isDarkMode ? "text-teal-200" : "text-teal-900"}`}>
-              {editedQuestions[index] || primaryValue || "Unnamed Question"}
+              {editedQuestions[index] || primaryValue}
               {isRequired && <span className="text-red-500 ml-2">*</span>}
             </p>
             <div className="flex items-center space-x-4 mt-4">
@@ -612,6 +637,7 @@ const Live_Generation = () => {
                     : `bg-white/80 border ${error ? "border-red-400" : "border-teal-200"} focus:ring-teal-500 text-teal-800 placeholder-teal-400/70`
                 }`}
                 placeholder="Enter amount"
+                required={isRequired}
               />
               <select
                 value={answerWithCurrency.currency}
@@ -650,7 +676,7 @@ const Live_Generation = () => {
       <div key={index} className="mb-12">
         <div className="w-full">
           <p className={`text-lg font-medium ${isDarkMode ? "text-teal-200" : "text-teal-900"}`}>
-            {editedQuestions[index] || primaryValue || "Unnamed Question"}
+            {editedQuestions[index] || primaryValue}
             {isRequired && <span className="text-red-500 ml-2">*</span>}
           </p>
           {currentType === "Radio" ? (
@@ -823,10 +849,8 @@ const Live_Generation = () => {
   const handleFinish = () => {
     const hasErrors = Object.values(inputErrors).some((error) => error !== "");
     if (hasErrors) {
-      
       setShowWarning(true);
       setTimeout(() => setShowWarning(false), 5000);
-      // alert("Please correct all input errors before finishing.");
       return;
     }
 
@@ -849,12 +873,11 @@ const Live_Generation = () => {
       .filter(Boolean);
 
     if (unansweredRequiredFields.length > 0) {
-      
       setShowWarning(true);
       setTimeout(() => setShowWarning(false), 5000);
-      // alert(`Please answer all required questions: ${unansweredRequiredFields.join(", ")}`);
       return;
     }
+
     let message = "";
     if (questionnaireScore >= 151) {
       message = "Congratulations! You've achieved Document Automation Pro certification (Excellent Performance)";
@@ -868,8 +891,12 @@ const Live_Generation = () => {
 
     setCertificationMessage(message);
     setShowCertificationPopup(true);
+  };
 
-    // navigate("/Finish", { state: { userAnswers } });
+  const handleReplay = () => {
+    sessionStorage.clear();
+    console.log("sessionStorage cleared on Replay click");
+    navigate("/Level-Two-Part-Two"); // Use navigate instead of window.location.href
   };
 
   return (
@@ -881,7 +908,7 @@ const Live_Generation = () => {
       }`}
     >
       <Navbar
-        level="/Level-Two-Part-Two" 
+        level="/Level-Two-Part-Two"
         questionnaire="/Questionnaire"
         live_generation="/Live_Generation"
       />
@@ -894,7 +921,7 @@ const Live_Generation = () => {
       </div>
       <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-4 z-30">
         <button
-          onClick={() => navigate("/Questionnaire_Level3")}
+          onClick={() => navigate("/Questionnaire")}
           className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-300 ${
             isDarkMode
               ? "bg-gray-700 text-teal-200 hover:bg-gray-600"
@@ -935,7 +962,7 @@ const Live_Generation = () => {
                       isDarkMode
                         ? "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800"
                         : "bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-500 hover:to-cyan-500"
-                    } departmental`}
+                    }`}
                     onClick={handleFinish}
                   >
                     Finish
@@ -977,7 +1004,6 @@ const Live_Generation = () => {
               })}
             </div>
           </div>
-          
           <WarningAlert
             message="Please correct all input errors and answer all required questions before finishing."
             isVisible={showWarning}
@@ -988,17 +1014,13 @@ const Live_Generation = () => {
             isVisible={showCertificationPopup}
             isDarkMode={isDarkMode}
             onContinue={handleContinueToDocument}
-            onReplay={() => (window.location.href = "/Level-Two-Part-Two")}
+            onReplay={handleReplay}
             score={questionnaireScore}
           />
         </div>
       </div>
-      
     </div>
   );
 };
 
 export default Live_Generation;
-
-
-// latest code

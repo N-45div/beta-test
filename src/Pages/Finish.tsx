@@ -17,6 +17,7 @@ const processAgreement = (html: string, answers: UserAnswers) => {
   console.log("Initial html in processAgreement:", html); // Debug log
   console.log("userAnswers in processAgreement:", answers);
 
+  // Add font-bold class to h2 tags
   updatedHtml = updatedHtml.replace(
     /<h2 className="([^"]*)"/g,
     (className) => {
@@ -61,28 +62,44 @@ const processAgreement = (html: string, answers: UserAnswers) => {
   const additionalLocationsAnswer = answers["Does the employee need to work at additional locations besides the normal place of work?"];
   const additionalLocationDetails = answers["What is the additional work location?"] as string | undefined;
   if (additionalLocationsAnswer === true && additionalLocationDetails && typeof additionalLocationDetails === "string" && additionalLocationDetails.trim()) {
-    // Replace or append the additional location details
     updatedHtml = updatedHtml.replace(
       /\[other locations\]/gi,
       additionalLocationDetails
     );
   } else if (additionalLocationsAnswer === false || additionalLocationsAnswer === null) {
-    // Remove the clause if not applicable
     updatedHtml = updatedHtml.replace(
       /<h2[^>]*>[^<]*ADDITIONAL WORK LOCATIONS[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?\[other locations\][\s\S]*?<\/p>/i,
       ""
     );
   }
 
+  // Handle overtime clause (align with Live_Generation_2 logic)
+  const overtimeAnswer = answers["Is the employee entitled to overtime work?"] as boolean | null | undefined;
+  const overtimeYesClause = "{The Employee is entitled to overtime pay for authorized overtime work.}";
+  const overtimeNoClause = "{The Employee shall not receive additional payment for overtime worked.}";
+
+  updatedHtml = updatedHtml.replace(
+    /<p className="mt-5" id="employment-agreement-working-hours">([\s\S]*?)<\/p>/i,
+    () => {
+      let replacementText = "";
+      if (overtimeAnswer === true) {
+        replacementText = overtimeYesClause;
+      } else if (overtimeAnswer === false) {
+        replacementText = overtimeNoClause;
+      } else {
+        replacementText = ""; // Default to empty if no answer
+      }
+      return `<p className="mt-5" id="employment-agreement-working-hours">${replacementText}</p>`;
+    }
+  );
+
   // Process other placeholders
   Object.entries(answers).forEach(([question, answer]) => {
-    // Skip [USA] since we already handled it
-    if (question === "What is the governing country?") {
-      return;
+    if (question === "What is the governing country?" || question === "Is the employee entitled to overtime work?") {
+      return; // Skip these as they are handled separately
     }
 
     const placeholder = findPlaceholderByValue(question);
-    // Handle calculations
     if (placeholder === "Unused Holiday Days" && typeof answer === "string") {
       const calculatedValue = localStorage.getItem("calculatedValue") || "";
       updatedHtml = updatedHtml.replace(
@@ -95,13 +112,11 @@ const processAgreement = (html: string, answers: UserAnswers) => {
       if (question === "What's the annual salary?" || question === "Specify the holiday pay?") {
         const salaryData = answer as { amount: string; currency: string } | undefined;
         const formattedAmount = salaryData?.amount || `[${placeholder}]`;
-        const formattedCurrency = salaryData?.currency || "USD"; // Default to USD if no currency is selected
-        // Replace [Annual Salary] with the amount
+        const formattedCurrency = salaryData?.currency || "USD";
         updatedHtml = updatedHtml.replace(
           new RegExp(`\\[${escapedPlaceholder}\\]`, "gi"),
           formattedAmount
         );
-        // Replace [USD] with the selected currency
         updatedHtml = updatedHtml.replace(
           new RegExp(`\\[USD\\]`, "gi"),
           formattedCurrency
@@ -109,12 +124,10 @@ const processAgreement = (html: string, answers: UserAnswers) => {
       } else if (typeof answer === "boolean") {
         if (!answer) {
           if (question === "Is the clause of probationary period applicable?") {
-            if (answer === false) {
-              updatedHtml = updatedHtml.replace(
-                /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
-                ""
-              );
-            }
+            updatedHtml = updatedHtml.replace(
+              /<h2[^>]*>[^<]*PROBATIONARY PERIOD[^<]*<\/h2>\s*<p[^>]*>[\s\S]*?<\/p>/i,
+              ""
+            );
           }
           updatedHtml = updatedHtml.replace(new RegExp(`.*${escapedPlaceholder}.*`, "gi"), "");
         } else {
@@ -159,12 +172,6 @@ const processAgreement = (html: string, answers: UserAnswers) => {
       } else if (question === "Is the previous service applicable?" && answer === false) {
         const prevEmploymentClause = 'or, if applicable, "on [Previous Employment Start Date] with previous continuous service taken into account"';
         updatedHtml = updatedHtml.replace(new RegExp(`\\s*${prevEmploymentClause.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&")}\\s*`, "gi"), "");
-      } else if (question === "Does the employee receive overtime payment?" && answer === false) {
-        const overtimeYesClause = "{The Employee is entitled to overtime pay at a rate of [Overtime Pay Rate] for authorized overtime work}";
-        updatedHtml = updatedHtml.replace(new RegExp(`\\s*${overtimeYesClause.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&")}\\s*`, "gi"), "");
-      } else if (question === "Should the employee not receive overtime payment?" && answer === false) {
-        const overtimeNoClause = "{The Employee shall not receive additional payment for overtime worked}";
-        updatedHtml = updatedHtml.replace(new RegExp(`\\s*${overtimeNoClause.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, "\\$&")}\\s*`, "gi"), "");
       }
     }
   });
