@@ -896,7 +896,7 @@ const Live_Generation = () => {
   const handleReplay = () => {
     sessionStorage.clear();
     console.log("sessionStorage cleared on Replay click");
-    window.location.href = "/Level-Two-Part-Two";
+    navigate("/Level-Two-Part-Two"); // Use navigate instead of window.location.href
   };
 
   return (
