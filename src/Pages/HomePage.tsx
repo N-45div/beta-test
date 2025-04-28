@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   FaFileAlt,
   FaTimes,
@@ -388,6 +388,12 @@ const HomePage = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const levels = useMemo(() => levelsData, []);
+
+  // Clear sessionStorage when the HomePage mounts
+  useEffect(() => {
+    sessionStorage.clear();
+    console.log("sessionStorage cleared on HomePage mount");
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handleLevelClick = (index: number) => {
     setActiveIndex(index === activeIndex ? null : index);

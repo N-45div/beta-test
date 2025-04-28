@@ -44,7 +44,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
   const [isRequired, setIsRequired] = useState(initialRequired);
   const [typeChanged, setTypeChanged] = useState(initialTypeChanged);
   const { findPlaceholderByValue, updateQuestion, determineQuestionType, questionMaps } = useQuestionEditContext();
-  const { primaryValue, validTypes } = determineQuestionType(textValue); // Now using validTypes
+  const { primaryValue, validTypes } = determineQuestionType(textValue);
 
   const handleTypeSelect = (type: string) => {
     if (typeChanged) return;
@@ -159,7 +159,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
                 }}
               >
                 <div className="hide-scrollbar">
-                  {validTypes.map((type) => ( // Use validTypes from determineQuestionType
+                  {validTypes.map((type) => (
                     <div
                       key={type}
                       className={`px-4 py-2 cursor-pointer transition-all duration-200 ${
@@ -225,7 +225,7 @@ const Questionnaire_Level3 = () => {
     "What's the probation extension length?",
     "How many weeks?",
     "Who is the HR/Relevant Contact?",
-    "What is the additional work location?", // Added for loop follow-up
+    "What is the additional work location?",
   ];
 
   const showFeedback = (points: number) => {
@@ -338,7 +338,6 @@ const Questionnaire_Level3 = () => {
       text.includes("/The Employee may be required to work at [other locations]./")
     );
 
-    // Filter questions
     const filteredQuestions = highlightedTexts.filter((text) => {
       const { primaryValue } = enhancedDetermineQuestionType(text);
       const isFollowUp = followUpQuestions.includes(primaryValue || "");
@@ -347,11 +346,10 @@ const Questionnaire_Level3 = () => {
         return false;
       }
 
-      // Include both the small condition and the loop follow-up explicitly
       const shouldInclude =
         text === "USA" ||
-        (text.includes("The Employee may be required to work at [other locations].")) || // Small condition (handles both forms)
-        (text === "other locations" && isAdditionalLocationsClauseSelected) || // Loop follow-up
+        (text.includes("The Employee may be required to work at [other locations].")) ||
+        (text === "other locations" && isAdditionalLocationsClauseSelected) ||
         (primaryValue === "What's the probation period length?" &&
           text === "Probation Period Length" &&
           !isProbationaryClauseSelected) ||
@@ -369,21 +367,17 @@ const Questionnaire_Level3 = () => {
       }
     }
 
-    // Ensure [USA] is included if present
     if (highlightedTexts.includes("USA") && !processedTexts.includes("USA")) {
       processedTexts.push("USA");
     }
 
-    // Reorder to place follow-up questions after their parent
     const orderedTexts: string[] = [];
     const smallConditionText = "The Employee may be required to work at [other locations].";
     const followUpText = "other locations";
 
-    // Add questions in the correct order
     filteredQuestions.forEach((text) => {
       if (text.includes(smallConditionText) || text === "/The Employee may be required to work at [other locations]./") {
         orderedTexts.push(text);
-        // Add the follow-up if it exists in highlightedTexts
         if (highlightedTexts.includes(followUpText) && !orderedTexts.includes(followUpText)) {
           orderedTexts.push(followUpText);
         }
@@ -401,46 +395,20 @@ const Questionnaire_Level3 = () => {
       return primaryValue || "No text selected";
     });
 
-    // Initialize all question types to "Text" by default, ignoring "correct" types
     const savedTypes = sessionStorage.getItem("selectedQuestionTypes");
-    let initialTypes: string[];
-    if (savedTypes) {
-      // initialTypes = JSON.parse(savedTypes);
-      // if (initialTypes.length !== orderedTexts.length) {
-      //   initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
-      // }
-      const parsed = JSON.parse(savedTypes);
-      // Keep existing types and default to "Text" for any new items
-      initialTypes = orderedTexts.map((_, index) => parsed[index] ?? "Text");
-    } else {
-      initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
-    }
+    const initialTypes = savedTypes
+      ? JSON.parse(savedTypes).map((type: string, idx: number) => (idx < orderedTexts.length ? type : "Text"))
+      : orderedTexts.map(() => "Text");
 
     const savedTypeChanged = sessionStorage.getItem("typeChangedStates");
-    let initialTypeChanged: boolean[];
-    if (savedTypeChanged) {
-      // initialTypeChanged = JSON.parse(savedTypeChanged);
-      // if (initialTypeChanged.length !== orderedTexts.length) {
-      //   initialTypeChanged = orderedTexts.map(() => false);
-      // }
-      const parsed = JSON.parse(savedTypeChanged);
-      // keep existing values and default to false for new items
-      initialTypeChanged = orderedTexts.map((_, index) => parsed[index] ?? false);
-
-    } else {
-      initialTypeChanged = orderedTexts.map(() => false);
-    }
+    const initialTypeChanged = savedTypeChanged
+      ? JSON.parse(savedTypeChanged).map((changed: boolean, idx: number) => (idx < orderedTexts.length ? changed : false))
+      : orderedTexts.map(() => false);
 
     const savedOrder = sessionStorage.getItem("questionOrder");
-    let initialOrder: number[];
-    if (savedOrder) {
-      initialOrder = JSON.parse(savedOrder);
-      if (initialOrder.length !== orderedTexts.length) {
-        initialOrder = orderedTexts.map((_, index) => index);
-      }
-    } else {
-      initialOrder = orderedTexts.map((_, index) => index);
-    }
+    const initialOrder = savedOrder
+      ? JSON.parse(savedOrder).filter((idx: number) => idx < orderedTexts.length).concat(Array.from({ length: orderedTexts.length - JSON.parse(savedOrder).length }, (_, i) => i + JSON.parse(savedOrder).length))
+      : orderedTexts.map((_, index) => index);
 
     setQuestionOrder(initialOrder);
     setQuestionTexts(initialTexts);
@@ -540,7 +508,6 @@ const Questionnaire_Level3 = () => {
     setQuestionOrder(newOrder);
     sessionStorage.setItem("questionOrder", JSON.stringify(newOrder));
 
-    // Reorder related arrays based on the new question order
     const newUniqueQuestions = newOrder.map(index => uniqueQuestions[index]);
     const newQuestionTexts = newOrder.map(index => questionTexts[index]);
     const newSelectedTypes = newOrder.map(index => selectedTypes[index]);
@@ -757,6 +724,7 @@ const Questionnaire_Level3 = () => {
 };
 
 export default Questionnaire_Level3;
+
 
 
 
