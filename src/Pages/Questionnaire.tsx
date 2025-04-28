@@ -217,7 +217,7 @@ const Questionnaire = () => {
   const [scoreFeedback, setScoreFeedback] = useState<{ points: number; id: number } | null>(null);
   const [typeChangedStates, setTypeChangedStates] = useState<boolean[]>([]);
   const feedbackId = useRef(0);
-  const { questionMaps, updateQuestion, determineQuestionType, findPlaceholderByValue } = useQuestionEditContext();
+  const { updateQuestion, determineQuestionType, findPlaceholderByValue } = useQuestionEditContext();
   const navigate = useNavigate();
 
   const followUpQuestions = [

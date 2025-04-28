@@ -163,11 +163,8 @@ const Live_Generation = () => {
     }
 
     const savedTypeChanged = sessionStorage.getItem("typeChangedStates");
-    let typeChangedStates: boolean[] = [];
     if (savedTypeChanged) {
-      typeChangedStates = JSON.parse(savedTypeChanged);
     } else {
-      typeChangedStates = originalHighlightedTexts.map(() => false);
     }
 
     const processedTexts: string[] = [];
