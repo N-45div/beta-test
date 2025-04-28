@@ -28,7 +28,7 @@ const LevelOneDesign = () => {
   const [selected, setSelected] = useState<boolean>(false);
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
-  const [hintLimit, setHintLimit] = useState<number>(5);
+  const [hintLimit, setHintLimit] = useState<number>(10);
   const [hintToggled, setHintToggled] = useState<boolean>(false);
   const correctSoundRef = new Audio(correctSound);
   const incorrectSoundRef = new Audio(incorrectSound);
