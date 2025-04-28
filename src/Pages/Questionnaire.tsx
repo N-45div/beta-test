@@ -137,7 +137,7 @@ const DivWithDropdown: React.FC<DivWithDropdownProps> = ({
                 isDarkMode
                   ? "bg-gray-600/80 text-teal-200 hover:bg-gray-500"
                   : "bg-white/80 text-teal-900 hover:bg-white"
-              } ${typeChanged ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${typeChanged ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={() => !typeChanged && setIsOpen(!isOpen)}
               disabled={typeChanged}
             >
@@ -411,7 +411,6 @@ const Questionnaire = () => {
     let initialTypes: string[] = [];
     if (savedTypes) {
       const parsedTypes = JSON.parse(savedTypes);
-      // Validate length of savedTypes to match orderedTexts
       if (parsedTypes.length !== orderedTexts.length) {
         console.warn("Mismatch in savedTypes length. Resetting to default 'Text'.");
         initialTypes = orderedTexts.map(() => "Text");
@@ -426,7 +425,6 @@ const Questionnaire = () => {
     let initialTypeChanged: boolean[] = [];
     if (savedTypeChanged) {
       const parsedTypeChanged = JSON.parse(savedTypeChanged);
-      // Validate length of savedTypeChanged to match orderedTexts
       if (parsedTypeChanged.length !== orderedTexts.length) {
         console.warn("Mismatch in savedTypeChanged length. Resetting to false.");
         initialTypeChanged = orderedTexts.map(() => false);
@@ -456,12 +454,10 @@ const Questionnaire = () => {
     setScoredQuestions({});
     setBonusAwarded(false);
 
-    // Log the state for debugging
     console.log("Initial typeChangedStates:", initialTypeChanged);
     console.log("Initial selectedTypes:", initialTypes);
     console.log("Initial questionTexts:", initialTexts);
 
-    // Save to sessionStorage
     sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(initialTypes));
     sessionStorage.setItem("typeChangedStates", JSON.stringify(initialTypeChanged));
     sessionStorage.setItem("questionOrder", JSON.stringify(initialOrder));
@@ -475,7 +471,7 @@ const Questionnaire = () => {
     const newTypes = [...selectedTypes];
     newTypes[index] = type;
     setSelectedTypes(newTypes);
-    sessionStorage.setItem("selectedQuestionTypes_2", JSON.stringify(newTypes));
+    sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypes)); // Consistent key
     scoreTypeSelection(index, type);
 
     const textValue = uniqueQuestions[index];
@@ -543,7 +539,7 @@ const Questionnaire = () => {
     newOrder.splice(result.destination.index, 0, reorderedItem);
 
     setQuestionOrder(newOrder);
-    sessionStorage.setItem("questionOrder_2", JSON.stringify(newOrder));
+    sessionStorage.setItem("questionOrder", JSON.stringify(newOrder));
 
     const newUniqueQuestions = newOrder.map((index) => uniqueQuestions[index]);
     const newQuestionTexts = newOrder.map((index) => questionTexts[index]);
