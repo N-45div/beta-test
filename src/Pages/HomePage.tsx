@@ -250,6 +250,9 @@ const LevelCard: React.FC<LevelProps & { isDarkMode: boolean }> = ({
       setShowDialog(true);
     } else {
       navigate(link);
+      sessionStorage.removeItem("selectedQuestionTypes_3");
+      sessionStorage.removeItem("typeChangedStates_3");
+      sessionStorage.removeItem("questionOrder_3");
     }
   };
 
@@ -259,8 +262,14 @@ const LevelCard: React.FC<LevelProps & { isDarkMode: boolean }> = ({
       navigate("/Level-Two-Part-One");
     } else if (part === "two" && isDemo) {
       navigate("/Level-Two-Part-Two-Demo");
+      sessionStorage.removeItem("selectedQuestionTypes_2");
+      sessionStorage.removeItem("typeChangedStates_2");
+      sessionStorage.removeItem("questionOrder_2");
     } else {
       navigate("/Level-Two-Part-Two");
+      sessionStorage.removeItem("selectedQuestionTypes_2");
+      sessionStorage.removeItem("typeChangedStates_2");
+      sessionStorage.removeItem("questionOrder_2");
     }
   };
 

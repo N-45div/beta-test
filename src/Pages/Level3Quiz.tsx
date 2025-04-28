@@ -238,9 +238,25 @@ const handleIconClick = (label: string) => {
 };
 
   useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem("selectedQuestionTypes_3");
+      sessionStorage.removeItem("typeChangedStates_3");
+      sessionStorage.removeItem("questionOrder_3");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+
+  useEffect(() => {
     sessionStorage.removeItem("level");
     sessionStorage.setItem("level", location.pathname);
   }, [location]);
+
 
   useEffect(() => {
     window.scrollTo(0, 0);

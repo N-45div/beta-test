@@ -475,7 +475,7 @@ const Questionnaire = () => {
     const newTypes = [...selectedTypes];
     newTypes[index] = type;
     setSelectedTypes(newTypes);
-    sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypes));
+    sessionStorage.setItem("selectedQuestionTypes_2", JSON.stringify(newTypes));
     scoreTypeSelection(index, type);
 
     const textValue = uniqueQuestions[index];
@@ -543,7 +543,7 @@ const Questionnaire = () => {
     newOrder.splice(result.destination.index, 0, reorderedItem);
 
     setQuestionOrder(newOrder);
-    sessionStorage.setItem("questionOrder", JSON.stringify(newOrder));
+    sessionStorage.setItem("questionOrder_2", JSON.stringify(newOrder));
 
     const newUniqueQuestions = newOrder.map((index) => uniqueQuestions[index]);
     const newQuestionTexts = newOrder.map((index) => questionTexts[index]);

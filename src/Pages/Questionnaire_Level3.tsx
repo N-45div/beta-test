@@ -395,20 +395,46 @@ const Questionnaire_Level3 = () => {
       return primaryValue || "No text selected";
     });
 
-    const savedTypes = sessionStorage.getItem("selectedQuestionTypes");
-    const initialTypes = savedTypes
-      ? JSON.parse(savedTypes).map((type: string, idx: number) => (idx < orderedTexts.length ? type : "Text"))
-      : orderedTexts.map(() => "Text");
+    // Initialize all question types to "Text" by default, ignoring "correct" types
+    const savedTypes = sessionStorage.getItem("selectedQuestionTypes_3");
+    let initialTypes: string[];
+    if (savedTypes) {
+      // initialTypes = JSON.parse(savedTypes);
+      // if (initialTypes.length !== orderedTexts.length) {
+      //   initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
+      // }
+      const parsed = JSON.parse(savedTypes);
+      // Keep existing types and default to "Text" for any new items
+      initialTypes = orderedTexts.map((_, index) => parsed[index] ?? "Text");
+    } else {
+      initialTypes = orderedTexts.map(() => "Text"); // Default to "Text" for all questions
+    }
 
-    const savedTypeChanged = sessionStorage.getItem("typeChangedStates");
-    const initialTypeChanged = savedTypeChanged
-      ? JSON.parse(savedTypeChanged).map((changed: boolean, idx: number) => (idx < orderedTexts.length ? changed : false))
-      : orderedTexts.map(() => false);
+    const savedTypeChanged = sessionStorage.getItem("typeChangedStates_3");
+    let initialTypeChanged: boolean[];
+    if (savedTypeChanged) {
+      // initialTypeChanged = JSON.parse(savedTypeChanged);
+      // if (initialTypeChanged.length !== orderedTexts.length) {
+      //   initialTypeChanged = orderedTexts.map(() => false);
+      // }
+      const parsed = JSON.parse(savedTypeChanged);
+      // keep existing values and default to false for new items
+      initialTypeChanged = orderedTexts.map((_, index) => parsed[index] ?? false);
 
-    const savedOrder = sessionStorage.getItem("questionOrder");
-    const initialOrder = savedOrder
-      ? JSON.parse(savedOrder).filter((idx: number) => idx < orderedTexts.length).concat(Array.from({ length: orderedTexts.length - JSON.parse(savedOrder).length }, (_, i) => i + JSON.parse(savedOrder).length))
-      : orderedTexts.map((_, index) => index);
+    } else {
+      initialTypeChanged = orderedTexts.map(() => false);
+    }
+
+    const savedOrder = sessionStorage.getItem("questionOrder_3");
+    let initialOrder: number[];
+    if (savedOrder) {
+      initialOrder = JSON.parse(savedOrder);
+      if (initialOrder.length !== orderedTexts.length) {
+        initialOrder = orderedTexts.map((_, index) => index);
+      }
+    } else {
+      initialOrder = orderedTexts.map((_, index) => index);
+    }
 
     setQuestionOrder(initialOrder);
     setQuestionTexts(initialTexts);
@@ -418,9 +444,9 @@ const Questionnaire_Level3 = () => {
     setScoredQuestions({});
     setBonusAwarded(false);
 
-    sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(initialTypes));
-    sessionStorage.setItem("typeChangedStates", JSON.stringify(initialTypeChanged));
-    sessionStorage.setItem("questionOrder", JSON.stringify(initialOrder));
+    sessionStorage.setItem("selectedQuestionTypes_3", JSON.stringify(initialTypes));
+    sessionStorage.setItem("typeChangedStates_3", JSON.stringify(initialTypeChanged));
+    sessionStorage.setItem("questionOrder_3", JSON.stringify(initialOrder));
   }, [highlightedTexts, setSelectedTypes, setEditedQuestions, setRequiredQuestions, enhancedDetermineQuestionType]);
 
   useEffect(() => {
@@ -431,7 +457,7 @@ const Questionnaire_Level3 = () => {
     const newTypes = [...selectedTypes];
     newTypes[index] = type;
     setSelectedTypes(newTypes);
-    sessionStorage.setItem("selectedQuestionTypes", JSON.stringify(newTypes));
+    sessionStorage.setItem("selectedQuestionTypes_3", JSON.stringify(newTypes));
     scoreTypeSelection(index, type);
 
     const textValue = uniqueQuestions[index];
@@ -457,7 +483,7 @@ const Questionnaire_Level3 = () => {
     const newTypeChangedStates = [...typeChangedStates];
     newTypeChangedStates[index] = changed;
     setTypeChangedStates(newTypeChangedStates);
-    sessionStorage.setItem("typeChangedStates", JSON.stringify(newTypeChangedStates));
+    sessionStorage.setItem("typeChangedStates_3", JSON.stringify(newTypeChangedStates));
   };
 
   const handleQuestionTextChange = (index: number, newText: string) => {
@@ -506,7 +532,7 @@ const Questionnaire_Level3 = () => {
     newOrder.splice(result.destination.index, 0, reorderedItem);
 
     setQuestionOrder(newOrder);
-    sessionStorage.setItem("questionOrder", JSON.stringify(newOrder));
+    sessionStorage.setItem("questionOrder_3", JSON.stringify(newOrder));
 
     const newUniqueQuestions = newOrder.map(index => uniqueQuestions[index]);
     const newQuestionTexts = newOrder.map(index => questionTexts[index]);
