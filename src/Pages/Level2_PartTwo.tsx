@@ -30,7 +30,7 @@ const LevelTwoPart_Two = () => {
 
   // Scoring system
   const { setLevelTwoScore } = useScore();
-  const [score, setScore] = useState<number>(0); // Explicitly define type as number
+  const [score, setScore] = useState<number>(0);
   const [scoreChange, setScoreChange] = useState<number | null>(null);
   const [foundPlaceholders, setFoundPlaceholders] = useState<string[]>([]);
   const [foundSmallConditions, setFoundSmallConditions] = useState<string[]>([]);
@@ -113,7 +113,7 @@ const LevelTwoPart_Two = () => {
         setTimeout(() => setScoreChange(null), 2000);
         setFoundSmallConditions((prev) => [...prev, textWithoutBrackets]);
       } else if (label === "Big Condition" && !foundBigConditions.includes(textWithoutBrackets)) {
-        setScore((prevScore) => prevScore + 3); // Removed extra '='
+        setScore((prevScore) => prevScore + 3);
         setScoreChange(3);
         setTimeout(() => setScoreChange(null), 2000);
         setFoundBigConditions((prev) => [...prev, textWithoutBrackets]);
@@ -299,9 +299,9 @@ const LevelTwoPart_Two = () => {
         ))}
       </div>
       {/* Modified Layout: Flex container for sidebar and main content */}
-      <div className="flex max-w-7xl mx-auto mt-24 px-8 pb-20">
+      <div className="flex w-full mx-auto mt-24 px-4 md:px-8 pb-20 flex-col md:flex-row">
         {/* Left Sidebar: AI Analysis Panel */}
-        <div className="w-1/3 pr-6">
+        <div className="w-full md:w-1/3 md:min-w-[300px] md:pr-4 mb-6 md:mb-0">
           <div
             className={`sticky top-24 p-6 rounded-3xl shadow-xl border ${
               isDarkMode
@@ -324,7 +324,7 @@ const LevelTwoPart_Two = () => {
           </div>
         </div>
         {/* Main Content: Placeholders and Document */}
-        <div className="w-2/3">
+        <div className="w-full md:w-2/3 md:min-w-[500px]">
           <div
             className={`rounded-3xl shadow-2xl border p-8 transform transition-all duration-500 hover:shadow-3xl ${
               isDarkMode
