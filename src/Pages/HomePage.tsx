@@ -361,7 +361,7 @@ const LevelCard: React.FC<LevelProps & { isDarkMode: boolean }> = ({
 
 const levelsData = [
   {
-    title: "Simple Quiz",
+    title: "Legal Tech Quiz",
     description:
       "Test your basic knowledge of contract management with a quick and engaging quiz.",
     Icon: FaFileAlt,
@@ -449,12 +449,12 @@ const HomePage = () => {
                 isDarkMode ? "text-gray-100" : "text-gray-900"
               }`}
             >
-              Welcome to CLM Training
+              Welcome to Contract Coder
             </h1>
             <p
               className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
             >
-              Select a learning path to begin your contract management journey
+              Begin your legal tech document automation journey.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
