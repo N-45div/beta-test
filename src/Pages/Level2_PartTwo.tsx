@@ -30,7 +30,7 @@ const LevelTwoPart_Two = () => {
 
   // Scoring system
   const { setLevelTwoScore } = useScore();
-  const [score, setScore] = useState<number>(0);
+  const [score, setScore] = useState<number>(0); // Explicitly define type as number
   const [scoreChange, setScoreChange] = useState<number | null>(null);
   const [foundPlaceholders, setFoundPlaceholders] = useState<string[]>([]);
   const [foundSmallConditions, setFoundSmallConditions] = useState<string[]>([]);
@@ -113,7 +113,7 @@ const LevelTwoPart_Two = () => {
         setTimeout(() => setScoreChange(null), 2000);
         setFoundSmallConditions((prev) => [...prev, textWithoutBrackets]);
       } else if (label === "Big Condition" && !foundBigConditions.includes(textWithoutBrackets)) {
-        setScore=((prevScore) => prevScore + 3);
+        setScore((prevScore) => prevScore + 3); // Removed extra '='
         setScoreChange(3);
         setTimeout(() => setScoreChange(null), 2000);
         setFoundBigConditions((prev) => [...prev, textWithoutBrackets]);
