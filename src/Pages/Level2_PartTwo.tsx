@@ -4,14 +4,12 @@ import { ImLoop2 } from "react-icons/im";
 import { useState, useContext, useRef, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { useHighlightedText } from "../context/HighlightedTextContext";
-import { useQuestionType } from "../context/QuestionTypeContext";
-import EmploymentAgreement from "../utils/EmploymentAgreement";
-import { determineQuestionType } from "../utils/questionTypeUtils";
 import { ThemeContext } from "../context/ThemeContext";
 import AIAnalysisPanel from "../components/AIAnalysisPanel";
 import { useLocation } from "react-router";
 import { CrispChat } from "../bot/knowledge";
 import { useScore } from "../context/ScoreContext";
+import EmploymentAgreement from "../utils/EmploymentAgreement";
 
 const icons = [
   { icon: <FaPenToSquare />, label: "Edit PlaceHolder" },
@@ -23,48 +21,29 @@ const icons = [
 const LevelTwoPart_Two = () => {
   const { isDarkMode } = useContext(ThemeContext);
   const location = useLocation();
-  const [tooltip, setTooltip] = useState<string | null>(null);
-  const { highlightedTexts, addHighlightedText } = useHighlightedText();
-  const { selectedTypes } = useQuestionType();
+  const { highlightedTexts } = useHighlightedText();
   const documentRef = useRef<HTMLDivElement>(null);
   const { setLevelTwoScore } = useScore();
-  const [score, setScore] = useState<number>(0);
-  const [scoreChange, setScoreChange] = useState<number | null>(null);
-  const [foundPlaceholders, setFoundPlaceholders] = useState<string[]>([]);
-  const [foundSmallConditions, setFoundSmallConditions] = useState<string[]>([]);
-  const [foundBigConditions, setFoundBigConditions] = useState<string[]>([]);
-
+  const [score] = useState<number>(0); // Only score used
   useEffect(() => {
     setLevelTwoScore(score);
   }, [score, setLevelTwoScore]);
 
   useEffect(() => {
-    sessionStorage.removeItem("level");
     sessionStorage.setItem("level", location.pathname);
+    return () => {
+      sessionStorage.removeItem("selectedQuestionTypes_2");
+      sessionStorage.removeItem("typeChangedStates_2");
+      sessionStorage.removeItem("questionOrder_2");
+    };
   }, [location.pathname]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      sessionStorage.removeItem("selectedQuestionTypes_2");
-      sessionStorage.removeItem("typeChangedStates_2");
-      sessionStorage.removeItem("questionOrder_2");
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, []);
-
-  const getDocumentText = () => {
-    return documentRef.current?.textContent || "";
-  };
-
   const handleIconClick = (label: string) => {
-    // ICON HANDLER LOGIC REMAINS UNCHANGED
-    // [keep your entire handleIconClick logic here]
+    // Your actual logic goes here
   };
 
   return (
@@ -78,12 +57,16 @@ const LevelTwoPart_Two = () => {
       <Navbar />
 
       <div className="flex flex-col md:flex-row px-4 md:px-8 py-4 gap-6">
-        {/* AI Panel on the top-left */}
+        {/* AI Panel */}
         <aside className="md:w-1/4 w-full sticky top-0">
-          <AIAnalysisPanel />
+          <AIAnalysisPanel
+            documentText={documentRef.current?.textContent || ""}
+            highlightedTexts={highlightedTexts}
+            isDarkMode={isDarkMode}
+          />
         </aside>
 
-        {/* Main content */}
+        {/* Main Content */}
         <main className="md:w-3/4 w-full flex flex-col gap-4">
           <div className="flex gap-2 flex-wrap">
             {icons.map(({ icon, label }, index) => (
@@ -91,8 +74,6 @@ const LevelTwoPart_Two = () => {
                 key={index}
                 onClick={() => handleIconClick(label)}
                 className="flex items-center gap-2 px-3 py-1 rounded-lg shadow text-sm border hover:bg-teal-100 dark:hover:bg-gray-700 transition"
-                onMouseEnter={() => setTooltip(label)}
-                onMouseLeave={() => setTooltip(null)}
               >
                 {icon}
                 <span>{label}</span>
@@ -100,28 +81,16 @@ const LevelTwoPart_Two = () => {
             ))}
           </div>
 
-          {/* Document */}
           <div
             ref={documentRef}
             className="p-4 border rounded-lg bg-white dark:bg-gray-800 shadow max-h-[80vh] overflow-y-auto"
           >
             <EmploymentAgreement />
           </div>
-
-          {/* Optional: Score feedback */}
-          {scoreChange !== null && (
-            <div
-              className={`text-sm font-semibold ${
-                scoreChange > 0 ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              {scoreChange > 0 ? `+${scoreChange} points` : `${scoreChange} points`}
-            </div>
-          )}
         </main>
       </div>
 
-      <CrispChat />
+      <CrispChat websiteId="YOUR_CRISP_WEBSITE_ID" />
     </div>
   );
 };
