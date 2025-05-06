@@ -202,7 +202,7 @@ const Navbar = ({ level, questionnaire, live_generation, calculations }: NavbarP
                 isDarkMode ? "text-teal-300" : "text-blue-600"
               }`}
             >
-              Contractual
+              Contract Coder
             </span>
             <div className="relative flex items-center">
               <button
