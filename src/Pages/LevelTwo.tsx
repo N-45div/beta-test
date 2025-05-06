@@ -5,51 +5,63 @@ import klaraImg from "../assets/klara.png";
 
 const steps = [
   {
-    heading: "What is Contract Lifecycle Management?",
+    heading: "Welcome to the CLM Game!",
     content: [
-      `Contract lifecycle management (CLM) is the process of managing a contract from initiation through execution, performance, and renewal or expiration. CLM tools are software solutions that automate and streamline various stages of this process to enhance efficiency and compliance.`,
-      `In this game, you will navigate through stages of creating, managing, and finalizing contracts, earning points and rewards as you complete tasks like drafting, negotiating, and renewing contracts efficiently and compliantly.`,
+      "Step into the world of Contract Lifecycle Management (CLM) – the process of managing contracts from initiation to renewal or expiration.",
+      "With CLM tools, legal processes are automated and streamlined for better compliance and efficiency.",
     ],
     footerImg: lawyaltechLogo,
   },
   {
+    heading: "Your Role: Ana Smith",
     content: [
-      `Embark on the journey of Ana Smith, a Legal Intern at the prestigious Ron & Taylor's law firm in the heart of London. As Ana, you're currently immersed in the world of legal research and handling elementary legal tasks. However, your true passion lies in the cutting-edge realm of legal technology, and you're eager to transition into the legal tech department. Your adventure begins in a modest cubicle, but as you master new skills and knowledge, your environment will transform. Watch your workspace evolve with upgraded office furniture and state-of-the-art computer accessories. Each level you conquer brings you one step closer to your dream promotion and your very own office. Rise through the ranks and reshape your destiny!`,
+      "Meet Ana Smith, a Legal Intern at Ron & Taylor’s law firm in London.",
+      "Starting in a modest cubicle, Ana dreams of joining the legal tech department and climbing the ladder to her own modern office.",
     ],
     footerImg: lawyaltechLogo,
   },
   {
+    heading: "Level Up with CLM!",
     content: [
-      `Meet Klara, the head of the IT department at Ron & Taylor's.`,
-      `She will be assisting you with your training on how to configure and navigate through CLM tools.`,
+      "As Ana, you'll complete challenges that mirror real-life CLM workflows: drafting, negotiating, approving, and renewing contracts.",
+      "Each challenge earns you points, unlocking new office upgrades and career progress!",
+    ],
+    footerImg: lawyaltechLogo,
+  },
+  {
+    heading: "Meet Your Mentor: Klara",
+    content: [
+      "Say hello to Klara, the Head of IT at Ron & Taylor’s.",
+      "She’ll guide you through your CLM training and help you navigate the platform like a pro.",
     ],
     klara: klaraImg,
     footerImg: lawyaltechLogo,
   },
   {
+    heading: "Master Legal Tech Jargon",
     content: [
-      `To begin, you should get familiar with some of the Legal Tech Jargons commonly used in CLM tools:`,
+      "Before diving in, let’s review some key terms used in CLM tools.",
     ],
     list: [
       {
         term: "Document Automation",
         definition:
-          "The use of software to create legal documents by automatically filling in details specific to each case.",
+          "Software that automatically fills in case-specific details to generate legal documents.",
       },
       {
         term: "Negotiation",
         definition:
-          "The process within CLM tools that facilitates back-and-forth communication and revisions to reach a mutual agreement on contract terms.",
+          "A stage in CLM where terms are reviewed, modified, and agreed upon by involved parties.",
       },
       {
         term: "Placeholders",
         definition:
-          "Designated spaces in a document template where specific data can be automatically inserted by a CLM system.",
+          "Template markers replaced with relevant data during contract generation.",
       },
       {
         term: "Conditions",
         definition:
-          "Predefined rules or criteria that trigger specific actions or changes in a contract document within a CLM system.",
+          "Rules that automate actions or changes within a contract based on predefined criteria.",
       },
     ],
     footerImg: lawyaltechLogo,
