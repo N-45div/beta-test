@@ -1,22 +1,20 @@
-import * as React from "react";
+import React, { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import "@fontsource/orbitron/900.css";
 import "@fontsource/pixelify-sans/400.css";
 import { motion } from "framer-motion";   // need npm install framer-motion
 import correctSound from "../assets/correct.mp3";
 import incorrectSound from "../assets/incorrect.mp3";
-// Importing Poppins font
-import "@fontsource/poppins";
 
 // Props for top buttons
 interface CustomButtonProps {
-  children: React.ReactNode; // Explicitly typed children prop
+  children: ReactNode;
 }
 
 // Top bar button (Question 1, Score 100)
 const CustomButton: React.FC<CustomButtonProps> = ({ children }) => {
   return (
-    <button className="px-4 py-1 my-2 bg-white rounded-full text-[#34C759] text-[18px] shadow-lg shadow-black/50 font-[Poppins] font-extrabold">
+    <button className="px-4 py-1 my-2 bg-white rounded-full text-[#34C759] text-[18px] shadow-lg shadow-black/50">
       {children}
     </button>
   );
@@ -51,15 +49,15 @@ const LevelOneDesign = () => {
   const questions = [
     {
       question:
-        "1.  What is the primary purpose of document automation software?",
+        '1.  What is the best way to automate a placeholder like "Company Name" in an advanced CLM tool like Contract Coder?',
       options: [
-        " Editing images in documents",
-        "Automating the creation of standardized documents",
-        " Sending marketing emails",
-        "Encrypting confidential files",
+        " Put curly braces around the placeholders",
+        "Use square braces around the placeholder",
+        " Identify a placeholder and click on the placeholder button to automate it",
+        "Write the company name in all caps for emphasis",
       ],
-      correct: 1,
-      hint: "Think about how companies reduce manual work in producing frequently used paperwork.",
+      correct: 2,
+      hint: "Remember what you learned in the previous video about automating placeholders",
     },
     {
       question:
@@ -238,7 +236,7 @@ const LevelOneDesign = () => {
           </div>
         </div>
         {/* Top bar (Question and Score) */}
-        <div className="flex flex-col sm:flex-row justify-between px-2 py-2 ">
+        <div className="flex flex-col sm:flex-row justify-between px-2 py-2">
           <CustomButton>QUESTION {currentQuestionIndex + 1}</CustomButton>
   
           <div className="flex gap-x-2 sm:gap-x-4 relative">
@@ -267,14 +265,14 @@ const LevelOneDesign = () => {
       <div className="flex flex-col items-center gap-4 sm:gap-8 px-2 sm:px-4">
         {/* Centered Question */}
         <div
-          className="uppercase text-white text-center px-4 sm:px-24 py-2 sm:py-3 rounded-2xl text-sm sm:text-lg md:text-xl font-[Poppins] font-bold "
+          className="uppercase text-white text-center px-4 sm:px-24 py-2 sm:py-3 rounded-2xl text-sm sm:text-lg md:text-xl"
           style={{ backgroundColor: 'rgba(84, 84, 86, 0.34)' }}
         >
           {questions[currentQuestionIndex].question}
         </div>
   
         {/* Answer Options Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-x-20 sm:gap-y-6 w-full max-w-lg sm:max-w-250 xl mx-auto font-[Poppins]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-x-20 sm:gap-y-6 w-full max-w-lg sm:max-w-250 xl mx-auto">
           {questions[currentQuestionIndex].options.map((option, oIndex) => (
             <div className="h-[50px] sm:h-[65px] w-full sm:w-[460px] bg-white rounded-full border-4 border-[#59CAD3] shadow-lg shadow-black/50 flex px-4">
               <label key={oIndex} className="flex items-center p-2 cursor-pointer w-full">
@@ -286,7 +284,7 @@ const LevelOneDesign = () => {
                   onChange={() => handleSelect(currentQuestionIndex, oIndex)}
                   disabled={selected}
                 />
-                <span className="text-xs sm:text-sm md:text-base flex items-center px-4 font-[Poppins]">{`${String.fromCharCode(
+                <span className="text-xs sm:text-sm md:text-base font-sans flex items-center px-4">{`${String.fromCharCode(
                   65 + oIndex
                 )}. ${option}`}</span>
               </label>
@@ -331,7 +329,7 @@ const LevelOneDesign = () => {
       <div className="flex justify-center px-2 sm:px-4 mt-4">
         <button
           onClick={handleNext}
-          className="shadow-lg shadow-black/50 text-white px-4 sm:px-6 p-2 sm:text-[26px] bg-[#B3DCA5] border-4 border-[#59CAD3] rounded-full w-full sm:w-auto font-[Poppins] font-extrabold "
+          className="shadow-lg shadow-black/50 text-white px-4 sm:px-6 p-2 sm:text-[26px] bg-[#B3DCA5] border-4 border-[#59CAD3] rounded-full w-full sm:w-auto"
         >
           Continue
         </button>
