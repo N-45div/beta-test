@@ -6,6 +6,9 @@ import { motion } from "framer-motion";   // need npm install framer-motion
 import correctSound from "../assets/correct.mp3";
 import incorrectSound from "../assets/incorrect.mp3";
 
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/700.css";
+
 // Props for top buttons
 interface CustomButtonProps {
   children: ReactNode;
@@ -14,7 +17,7 @@ interface CustomButtonProps {
 // Top bar button (Question 1, Score 100)
 const CustomButton: React.FC<CustomButtonProps> = ({ children }) => {
   return (
-    <button className="px-4 py-1 my-2 bg-white rounded-full text-[#34C759] text-[18px] shadow-lg shadow-black/50">
+    <button className="px-4 py-1 my-2 bg-white rounded-full text-[#34C759] text-[18px] shadow-lg shadow-black/50 font-[Poppins] font-extrabold">
       {children}
     </button>
   );
@@ -49,15 +52,15 @@ const LevelOneDesign = () => {
   const questions = [
     {
       question:
-        '1.  What is the best way to automate a placeholder like "Company Name" in an advanced CLM tool like Contract Coder?',
+        "1. What is the primary purpose of document automation software?",
       options: [
-        " Put curly braces around the placeholders",
-        "Use square braces around the placeholder",
-        " Identify a placeholder and click on the placeholder button to automate it",
-        "Write the company name in all caps for emphasis",
+        " Editing images in documents",
+        "Automating the creation of standardized documents",
+        " Sending marketing emails",
+        "Encrypting confidential files",
       ],
-      correct: 2,
-      hint: "Remember what you learned in the previous video about automating placeholders",
+      correct: 1,
+      hint: "Think about how companies reduce manual work in producing frequently used paperwork.",
     },
     {
       question:
@@ -265,14 +268,14 @@ const LevelOneDesign = () => {
       <div className="flex flex-col items-center gap-4 sm:gap-8 px-2 sm:px-4">
         {/* Centered Question */}
         <div
-          className="uppercase text-white text-center px-4 sm:px-24 py-2 sm:py-3 rounded-2xl text-sm sm:text-lg md:text-xl"
+          className="uppercase text-white text-center px-4 sm:px-24 py-2 sm:py-3 rounded-2xl text-sm sm:text-lg md:text-xl font-[Poppins] font-bold"
           style={{ backgroundColor: 'rgba(84, 84, 86, 0.34)' }}
         >
           {questions[currentQuestionIndex].question}
         </div>
   
         {/* Answer Options Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-x-20 sm:gap-y-6 w-full max-w-lg sm:max-w-250 xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-x-20 sm:gap-y-6 w-full max-w-lg sm:max-w-250 xl mx-auto font-[Poppins]">
           {questions[currentQuestionIndex].options.map((option, oIndex) => (
             <div className="h-[50px] sm:h-[65px] w-full sm:w-[460px] bg-white rounded-full border-4 border-[#59CAD3] shadow-lg shadow-black/50 flex px-4">
               <label key={oIndex} className="flex items-center p-2 cursor-pointer w-full">
@@ -284,7 +287,7 @@ const LevelOneDesign = () => {
                   onChange={() => handleSelect(currentQuestionIndex, oIndex)}
                   disabled={selected}
                 />
-                <span className="text-xs sm:text-sm md:text-base font-sans flex items-center px-4">{`${String.fromCharCode(
+                <span className="text-xs sm:text-sm md:text-base font-sans flex items-center px-4 font-[Poppins]">{`${String.fromCharCode(
                   65 + oIndex
                 )}. ${option}`}</span>
               </label>
@@ -329,7 +332,7 @@ const LevelOneDesign = () => {
       <div className="flex justify-center px-2 sm:px-4 mt-4">
         <button
           onClick={handleNext}
-          className="shadow-lg shadow-black/50 text-white px-4 sm:px-6 p-2 sm:text-[26px] bg-[#B3DCA5] border-4 border-[#59CAD3] rounded-full w-full sm:w-auto"
+          className="shadow-lg shadow-black/50 text-white px-4 sm:px-6 p-2 sm:text-[26px] bg-[#B3DCA5] border-4 border-[#59CAD3] rounded-full w-full sm:w-auto font-[Poppins] font-extrabold"
         >
           Continue
         </button>
